@@ -10,8 +10,52 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
-# Allowed extensions for image upload
+# Extensions that is allowed for upload
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable= False)
+    price = db.Column(db.Float, nullable= False)
+    image = db.Column(db.String(100), nullable= False)
+
+
+#Routes for posting the datas
+
+@app.route("/")
+def home():
+    return render_template("home.html")
+
+@app.route("/products")
+def products():
+    all_products = Product.query.all()
+    return render_template("products.html", products= all_products)
+
+@app.route("/upload", methods=["GET","POST"])
+def upload():
+    if request.method == "POST":
+        name= request.form["name"]
+        price= float(request.form["price"])
+        image= request.files["image"]
+
+        if image and allowed_file(image.filename):
+            filename = secure_filename(image.filename)
+            image.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+            new_product = Product(name=name, price=price, image=filename)
+            db.session.add(new_product)
+            db.session.commit()
+            return redirect(url_for("products"))
+    
+    return render_template("upload.html")
+
+@app.route("/uploads/<filename>")
+def uploaded_file(filename):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
+if __name__ == "__main__":
+    app.run(debug=True)

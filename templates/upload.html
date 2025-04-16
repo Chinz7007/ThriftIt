@@ -1,0 +1,30 @@
+<html>
+<head>
+    <title>ThriftIt</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/products">Products</a>
+        <a href="/upload">Upload Product</a>
+    </nav>
+    <hr>
+
+    <h1>Upload a Product</h1>
+<form method="POST" enctype="multipart/form-data">
+    <label>Product Name:</label><br>
+    <input type="text" name="name" required><br><br>
+
+    <label>Price:</label><br>
+    <input type="number" name="price" step="0.01" required><br><br>
+
+    <label>Image:</label><br>
+    <input type="file" name="image" accept="image/*" required><br><br>
+
+    <input type="submit" value="Upload">
+</form>
+
+    
+</body>
+</html>

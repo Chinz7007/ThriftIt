@@ -1,0 +1,30 @@
+<html>
+<head>
+    <title>ThriftIt</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/products">Products</a>
+        <a href="/upload">Upload Product</a>
+    </nav>
+    <hr>
+
+    <h1>Products</h1>
+    
+    <div class="product-grid">
+    {% for product in products %}
+        <div class="product-card">
+          <img src="{{ url_for('uploaded_file', filename=product.image) }}" alt="{{ product.name }}">
+          <h3>{{ product.name }}</h3>
+          <p>${{ product.price }}</p>
+        </div>
+    
+    </div>
+    {% endfor %}
+
+</body>
+
+</html>
