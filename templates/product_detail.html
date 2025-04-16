@@ -1,0 +1,21 @@
+<html>
+<head>
+    <title>{{ product.name }} – ThriftIt</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<nav>
+    <a href="/">Home</a>
+    <a href="/products">Products</a>
+</nav>
+<hr>
+
+<div class="product-detail">
+    <img src="{{ url_for('uploaded_file', filename=product.image) }}" alt="{{ product.name }}" style="max-width:300px;">
+    <h1>{{ product.name }}</h1>
+    <p><strong>Price:</strong> RM{{ "%.2f"|format(product.price) }}</p>
+</div>
+
+</body>
+</html>

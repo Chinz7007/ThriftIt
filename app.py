@@ -57,5 +57,10 @@ def upload():
 def uploaded_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
+@app.route("/product/<int:product_id>")
+def product_detail(product_id):
+    product = Product.query.get_or_404(product_id)
+    return render_template("product_detail.html", product=product)
+
 if __name__ == "__main__":
     app.run(debug=True)
