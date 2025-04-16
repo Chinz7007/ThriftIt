@@ -32,8 +32,13 @@ def home():
 
 @app.route("/products")
 def products():
-    all_products = Product.query.all()
-    return render_template("products.html", products= all_products)
+    search = request.args.get("q")  # Get search input from URL
+    if search:
+        products = Product.query.filter(Product.name.ilike(f"%{search}%")).all()
+    else:
+        products = Product.query.all()
+
+    return render_template("products.html", products=products, search=search)
 
 @app.route("/upload", methods=["GET","POST"])
 def upload():
