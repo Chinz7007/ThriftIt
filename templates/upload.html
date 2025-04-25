@@ -1,33 +1,108 @@
 <html>
 <head>
     <title>ThriftIt - Upload</title>
-    <link rel="stylesheet" href="href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+         body {
+            background-color: #121212;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .upload-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .left-box, .right-box {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+        }
+
+        input[type="text"], input[type="file"], textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 16px 0;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #2c2c2c;
+            color: white;
+        }
+
+        textarea {
+            height: 100px;
+        }
+
+        .condition-buttons button {
+            margin: 5px 5px 10px 0;
+            padding: 10px 15px;
+            background-color: #2c2c2c;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .condition-buttons button:hover {
+            background-color: #444;
+        }
+
+        .checkbox-area {
+            margin: 15px 0;
+        }
+
+        .submit-btn {
+            margin-top: 20px;
+            padding: 12px 24px;
+            background-color: #00b09b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .submit-btn:hover {
+            background-color: #00a08b;
+        }
+    </style>
 </head>
 
 <body>
 <nav>
-    <a href="/home">Home</a>
+    <a href="/">Home</a>
     <a href="/products">Products</a>
-    <a href="/">Upload</a>
+    <a href="/upload">Upload Product</a>
 </nav>
 
 <div class="upload-container">
+    <form action="/upload" method="POST" enctype="multipart/form-data" style="display: flex; gap: 30px; width: 100%; flex-wrap: wrap;">
+        
+        <div class="left-box">
+            <h2>Item Photo</h2>
+            <input type="file" name="image" accept="image/*" required>
+            <p>Up to 1 image is allowed</p>
+        </div>
 
-    <div class="left-box">
-        <h2>Item Photo</h2>
-        <input type="file" name="image" accept="image/">
-        <p>Up to 1 image is allowed</p>
-    </div>
+        <div class="right-box">
+            <h2>Item Details</h2>
 
-    <div class="right-box">
-        <h2>Item Details</h2>
-        <form action="/upload" method="POST" enctype="multipart/form-data">
             <label for="category">Category</label>
             <select name="category" required>
-                 <option>Books</option>
-                 <option>Tech</option>
-                 <option>Clothes</option>
-                 <option>Others</option>
+                <option>Books</option>
+                <option>Tech</option>
+                <option>Clothes</option>
+                <option>Others</option>
             </select>
 
             <label>Condition</label>
@@ -39,8 +114,22 @@
                 <button type="button">Heavily Used</button>
             </div>
 
-        </form>
-    </div>
+            <label>Item Title</label>
+            <input type="text" name="name" required>
+
+            <label>Description (Optional)</label>
+            <input type="text" name="description">
+
+            <label>Price (RM)</label>
+            <input type="text" name="price" required>
+
+            <div class="checkbox-area">
+                <input type="checkbox" name="multiple"> I have more than one of the same item
+            </div>
+
+            <button type="submit" class="submit-btn">List Now</button>
+        </div>
+    </form>
 </div>
 </body>
 </html>
