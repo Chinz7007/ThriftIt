@@ -19,9 +19,13 @@ def allowed_file(filename):
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable= False)
-    price = db.Column(db.Float, nullable= False)
-    image = db.Column(db.String(100), nullable= False)
+    name = db.Column(db.String(100), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    image = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    category = db.Column(db.String(50), nullable=False)
+    condition = db.Column(db.String(50), nullable=False)
+    multiple_items = db.Column(db.Boolean, default=False)
 
 
 #Routes for posting the datas
@@ -32,30 +36,54 @@ def home():
 
 @app.route("/products")
 def products():
-    all_products = Product.query.all()
-    return render_template("products.html", products= all_products)
+    search = request.args.get("q") 
+    if search:
+        products = Product.query.filter(Product.name.ilike(f"%{search}%")).all()
+    else:
+        products = Product.query.all()
 
-@app.route("/upload", methods=["GET","POST"])
+    return render_template("products.html", products=products, search=search)
+
+@app.route("/upload", methods=["GET", "POST"])
 def upload():
     if request.method == "POST":
-        name= request.form["name"]
-        price= float(request.form["price"])
-        image= request.files["image"]
+        name = request.form.get("name")
+        price = float(request.form.get("price"))
+        category = request.form.get("category")
+        condition = request.form.get("condition", "Unknown")
+        description = request.form.get("description")
+        multiple = True if request.form.get("multiple") else False
+        image = request.files["image"]
 
         if image and allowed_file(image.filename):
             filename = secure_filename(image.filename)
             image.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
-            new_product = Product(name=name, price=price, image=filename)
+            new_product = Product(
+                name=name,
+                price=price,
+                image=filename,
+                description=description,
+                category=category,
+                condition=condition,
+                multiple_items=multiple
+            )
             db.session.add(new_product)
             db.session.commit()
+
             return redirect(url_for("products"))
-    
+
     return render_template("upload.html")
 
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
+@app.route("/product/<int:product_id>")
+def product_detail(product_id):
+    product = Product.query.get_or_404(product_id)
+    recent_products = Product.query.order_by(Product.id.desc()).limit(5).all()
+    return render_template("product_detail.html", product=product, recent_products=recent_products)
 
 if __name__ == "__main__":
     app.run(debug=True)
