@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inbox</title>
+</head>
+<body>
+
+<h1>Your Inbox</h1>
+
+{% if messages %}
+    <ul>
+    {% for message in messages %}
+        <li>
+            <strong>From User {{ message.sender_id }}:</strong><br>
+            {{ message.content }}<br>
+            <small>{{ message.timestamp }}</small>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No messages yet.</p>
+{% endif %}
+
+</body>
+</html>
