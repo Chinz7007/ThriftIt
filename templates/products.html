@@ -7,6 +7,10 @@
             text-decoration: none;
             color: white;
         }
+
+        .header{
+            display: flex;
+        }
     </style>
 </head>
 <body>
@@ -18,7 +22,9 @@
 </nav>
 <hr>
 
-<h1>Products</h1>
+<div class="header">
+<h1>Products</h1><a href="/products" class="viewmore">View More</a >
+</div>
 
 
 {% if search %}
