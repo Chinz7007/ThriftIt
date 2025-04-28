@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy
+from flask_socketio import SocketIO, join_room, emit
 from datetime import datetime
 import os
 
@@ -8,6 +10,7 @@ app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "uploads"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///products.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 db = SQLAlchemy(app)
 
@@ -28,26 +31,21 @@ class Product(db.Model):
     condition = db.Column(db.String(50), nullable=False)
     multiple_items = db.Column(db.Boolean, default=False)
 
-# User model
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    messages_sent = db.relationship('Message', backref='sender', lazy=True)
+     id       = db.Column(db.Integer, primary_key=True)
+     username = db.Column(db.String(100), unique=True, nullable=False)
+     email    = db.Column(db.String(120), unique=True, nullable=False)
+     messages_sent     = db.relationship('Message',foreign_keys='Message.sender_id',backref='sender', lazy='dynamic')
+     messages_received = db.relationship('Message',foreign_keys='Message.receiver_id',backref='receiver', lazy='dynamic')
 
-    def __repr__(self):
-        return f'<User {self.username}>'
 
-# Message model
 class Message(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    receiver_id = db.Column(db.Integer, nullable=False)  # New: receiver user id
-
-    def __repr__(self):
-        return f'<Message {self.id}>'
+     id         = db.Column(db.Integer, primary_key=True)
+     content    = db.Column(db.Text, nullable=False)
+     timestamp  = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+     sender_id   = db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
+     receiver_id = db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
+                            
 
 
 
