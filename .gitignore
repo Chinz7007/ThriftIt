@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 venv/
 __pycache__/
@@ -6,3 +7,7 @@ __pycache__/
 .vscode/
 .DS_Store
 Thumbs.db
+=======
+venv/ 
+__pycache__/ 
+>>>>>>> main
