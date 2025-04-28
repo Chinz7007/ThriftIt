@@ -17,7 +17,7 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
+#Product Model
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -73,7 +73,7 @@ def upload():
         name = request.form.get("name")
         price = float(request.form.get("price"))
         category = request.form.get("category")
-        condition = request.form.get("condition", "Unknown")
+        condition = request.form.get("condition","Unknown")
         description = request.form.get("description")
         multiple = True if request.form.get("multiple") else False
         image = request.files["image"]
@@ -105,7 +105,7 @@ def uploaded_file(filename):
 @app.route("/product/<int:product_id>")
 def product_detail(product_id):
     product = Product.query.get_or_404(product_id)
-    recent_products = Product.query.order_by(Product.id.desc()).limit(5).all()
+    recent_products = Product.query.order_by(Product.id.desc()).limit(10).all()
     return render_template("product_detail.html", product=product, recent_products=recent_products)
 
 # Route to send a message

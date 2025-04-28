@@ -27,3 +27,67 @@ nav a {
     width: 100%;
     height: auto;
 }
+
+.search-bar {
+    max-width: 500px;
+    margin: 20px auto;
+    display: flex;
+  }
+  
+  /* Form stretches to full width */
+  .search-bar form {
+    flex: 1;
+    display: flex;
+  }
+  
+  /* Input styling */
+  .search-bar input[type="text"] {
+    flex: 1;
+    padding: 10px 15px;
+    font-size: 1rem;
+    color: #eee;
+    background-color: #282828;
+    border: 1px solid #444;
+    border-radius: 4px 0 0 4px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  
+  .search-bar input[type="text"]::placeholder {
+    color: #888;
+  }
+  
+  /* On focus, brighten the border */
+  .search-bar input[type="text"]:focus {
+    border-color: #666;
+  }
+  
+  /* Button styling */
+  .search-bar button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #3b82f6;    /* blue accent */
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .search-bar button:hover {
+    background-color: #2563eb;    /* slightly darker on hover */
+  }
+
+.viewmore{
+    background-color: aquamarine;
+    color: white;
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-weight: bold;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.viewmore:hover{
+    background-color: rgb(3, 145, 97);
+}

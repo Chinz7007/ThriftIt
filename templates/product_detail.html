@@ -96,7 +96,10 @@
     <div class="main-product">
         <img src="{{ url_for('uploaded_file', filename=product.image) }}" alt="{{ product.name }}">
         <h1>{{ product.name }}</h1>
+        <p>Condition: <strong>{{ product.condition }}</strong></p>
+        <p>Description: {{product.description}}</p>
         <p><strong>Price:</strong> RM{{ "%.2f"|format(product.price) }}</p>
+        <p>Contact info:</p>
 
         <a class="back-link" href="/products">← Back to Products</a>
     </div>
