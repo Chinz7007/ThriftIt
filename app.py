@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 import os
 
 app = Flask(__name__)
@@ -26,6 +27,27 @@ class Product(db.Model):
     category = db.Column(db.String(50), nullable=False)
     condition = db.Column(db.String(50), nullable=False)
     multiple_items = db.Column(db.Boolean, default=False)
+
+# User model
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    messages_sent = db.relationship('Message', backref='sender', lazy=True)
+
+    def __repr__(self):
+        return f'<User {self.username}>'
+
+# Message model
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __repr__(self):
+        return f'<Message {self.id}>'
+
 
 
 #Routes for posting the datas
