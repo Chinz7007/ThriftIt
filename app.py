@@ -43,7 +43,8 @@ class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    receiver_id = db.Column(db.Integer, nullable=False)  # New: receiver user id
 
     def __repr__(self):
         return f'<Message {self.id}>'
@@ -107,5 +108,29 @@ def product_detail(product_id):
     recent_products = Product.query.order_by(Product.id.desc()).limit(5).all()
     return render_template("product_detail.html", product=product, recent_products=recent_products)
 
+# Route to send a message
+@app.route("/send_message", methods=["GET", "POST"])
+def send_message():
+    if request.method == "POST":
+        sender_id = int(request.form.get("sender_id"))
+        receiver_id = int(request.form.get("receiver_id"))
+        content = request.form.get("content")
+
+        new_message = Message(content=content, sender_id=sender_id, receiver_id=receiver_id)
+        db.session.add(new_message)
+        db.session.commit()
+
+        return redirect(url_for("inbox", user_id=sender_id))
+
+    users = User.query.all()
+    return render_template("send_message.html", users=users)
+
+# Route to view inbox
+@app.route("/inbox/<int:user_id>")
+def inbox(user_id):
+    messages = Message.query.filter_by(receiver_id=user_id).order_by(Message.timestamp.desc()).all()
+    return render_template("inbox.html", messages=messages, user_id=user_id)
+
 if __name__ == "__main__":
     app.run(debug=True)
+
