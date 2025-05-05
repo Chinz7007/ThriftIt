@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple Chatbox</title>
+  <link rel="stylesheet" href="style_chat.css">
+</head>
+<body>
+  <div class="chat-container" id="chat">
+    <!-- Messages will appear here -->
+  </div>
+  <div class="input-area">
+    <input type="text" id="userInput" placeholder="Type your message...">
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    function sendMessage() {
+      const input = document.getElementById("userInput");
+      const message = input.value.trim();
+      if (message === "") return;
+
+      const chat = document.getElementById("chat");
+
+      // User message
+      const userMsg = document.createElement("div");
+      userMsg.className = "message user";
+      userMsg.innerHTML = `
+        <div class="icon">ØG</div>
+        <div class="text">${message}</div>
+      `;
+      chat.appendChild(userMsg);
+
+      // Bot reply (simple echo)
+      const botMsg = document.createElement("div");
+      botMsg.className = "message bot";
+      botMsg.innerHTML = `
+        <div class="icon">ØG</div>
+        <div class="text">You said: ${message}</div>
+      `;
+      chat.appendChild(botMsg);
+
+      input.value = "";
+      chat.scrollTop = chat.scrollHeight;
+    }
+  </script>
+</body>
+</html>
