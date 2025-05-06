@@ -1,32 +1,165 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>ThriftIt</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThriftIt - Student Thrift Store</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
-    <nav>
-        <a href="/">Home</a>
-        <a href="/products">Products</a>
-        <a href="/upload">Upload Product</a>
-        <a href="/dm">Send Message</a>
-        <a href="{{ url_for('logout') }}">Logout</a>
+    {% include 'header.html' %}
 
-    </nav>
-    <hr>
-    
-    <div class="search-bar">
-        <form action="/products" method="get">
-            <input type="text" name="q" placeholder="Search for an item...">
-            <button type="submit">Search</button>
-        </form>
-    </div>
-    <hr>
-    
-<h1>Welcome to the Student Thrift Store!</h1>
-<p>Find affordable second-hand gems from other students.</p>
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Welcome to ThriftIt</h1>
+        <p>Find affordable second-hand treasures from fellow students and sell your unused items!</p>
+        
+        <!-- Enhanced Search Bar -->
+        <div class="search-bar">
+            <form action="/products" method="get">
+                <input type="text" name="q" placeholder="Search for textbooks, furniture, electronics...">
+                <button type="submit"><i class="fas fa-search"></i> Search</button>
+            </form>
+        </div>
+    </section>
 
-<div class="viewmore-btn" >
-    <a href="/products" class="viewmore">View More</a>
-</div>
+    <!-- Categories Section -->
+    <section class="categories">
+        <h2>Browse Categories</h2>
+        <div class="category-grid">
+            <a href="/products?category=textbooks" class="category-card">
+                <i class="fas fa-book"></i>
+                <h3>Textbooks</h3>
+            </a>
+            <a href="/products?category=furniture" class="category-card">
+                <i class="fas fa-couch"></i>
+                <h3>Furniture</h3>
+            </a>
+            <a href="/products?category=electronics" class="category-card">
+                <i class="fas fa-laptop"></i>
+                <h3>Electronics</h3>
+            </a>
+            <a href="/products?category=clothing" class="category-card">
+                <i class="fas fa-tshirt"></i>
+                <h3>Clothing</h3>
+            </a>
+            <a href="/products?category=kitchen" class="category-card">
+                <i class="fas fa-utensils"></i>
+                <h3>Kitchen</h3>
+            </a>
+            <a href="/products?category=stationery" class="category-card">
+                <i class="fas fa-pencil-alt"></i>
+                <h3>Stationery</h3>
+            </a>
+        </div>
+    </section>
+
+    <!-- Featured Items Section -->
+    <section class="featured-items">
+        <h2>Featured Items</h2>
+        <div class="item-grid">
+            <!-- Item 1 -->
+            <div class="item-card">
+                <div class="item-image">
+                    <img src="/api/placeholder/250/200" alt="Calculus Textbook">
+                </div>
+                <div class="item-details">
+                    <div class="item-title">Calculus Early Transcendentals</div>
+                    <div class="item-price">$40</div>
+                    <div class="item-seller">Posted by Alex S.</div>
+                    <div class="item-location"><i class="fas fa-map-marker-alt"></i> Central Campus</div>
+                </div>
+            </div>
+            
+            <!-- Item 2 -->
+            <div class="item-card">
+                <div class="item-image">
+                    <img src="/api/placeholder/250/200" alt="Desk Lamp">
+                </div>
+                <div class="item-details">
+                    <div class="item-title">Adjustable Desk Lamp</div>
+                    <div class="item-price">$15</div>
+                    <div class="item-seller">Posted by Jamie L.</div>
+                    <div class="item-location"><i class="fas fa-map-marker-alt"></i> North Dorms</div>
+                </div>
+            </div>
+            
+            <!-- Item 3 -->
+            <div class="item-card">
+                <div class="item-image">
+                    <img src="/api/placeholder/250/200" alt="Coffee Maker">
+                </div>
+                <div class="item-details">
+                    <div class="item-title">Coffee Maker (Like New)</div>
+                    <div class="item-price">$25</div>
+                    <div class="item-seller">Posted by Taylor J.</div>
+                    <div class="item-location"><i class="fas fa-map-marker-alt"></i> West Apartments</div>
+                </div>
+            </div>
+            
+            <!-- Item 4 -->
+            <div class="item-card">
+                <div class="item-image">
+                    <img src="/api/placeholder/250/200" alt="Bluetooth Speaker">
+                </div>
+                <div class="item-details">
+                    <div class="item-title">Portable Bluetooth Speaker</div>
+                    <div class="item-price">$20</div>
+                    <div class="item-seller">Posted by Morgan R.</div>
+                    <div class="item-location"><i class="fas fa-map-marker-alt"></i> South Campus</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="/products" class="btn btn-primary">View All Items</a>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works">
+        <h2>How ThriftIt Works</h2>
+        <div class="steps-container">
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-upload"></i>
+                </div>
+                <h3>List Your Item</h3>
+                <p>Upload photos and details of the items you want to sell.</p>
+            </div>
+            
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h3>Connect with Buyers</h3>
+                <p>Chat directly with interested students on campus.</p>
+            </div>
+            
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <h3>Meet & Exchange</h3>
+                <p>Arrange a convenient campus meetup to complete the sale.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="cta">
+        <h2>Ready to Buy or Sell?</h2>
+        <p>Join thousands of students already using ThriftIt to declutter and find great deals!</p>
+        <div class="cta-buttons">
+            <a href="/upload" class="btn btn-primary">Sell an Item</a>
+            <a href="/products" class="btn btn-secondary">Browse Items</a>
+        </div>
+    </section>
+
+    {% include 'footer.html' %}
 </body>
+
+
 </html>

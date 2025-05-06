@@ -1,54 +1,40 @@
 <html>
 <head>
-    <title>ThriftIt – Products</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        .product-card a{
-            text-decoration: none;
-            color: white;
-        }
-
-        .header{
-            display: flex;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ThriftIt – Products</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style_products.css') }}">
 </head>
 <body>
+  {% include 'header.html' %}
 
-<nav>
-    <a href="/">Home</a>
-    <a href="/products">Products</a>
-    <a href="/upload">Upload Product</a>
-</nav>
-<hr>
+  <main class="container">
+    <h1 class="page-title">Products</h1>
 
-<div class="header">
-<h1>Products</h1><a href="/products" class="viewmore">View More</a >
-</div>
+    {% if search %}
+      <p class="search-results">Results for: <strong>{{ search }}</strong></p>
+    {% endif %}
 
-
-{% if search %}
-    <p>Results for: <strong>{{ search }}</strong></p>
-{% endif %}
-
-
-{% if products %}
-    <div class="product-grid">
+    {% if products %}
+      <section class="product-grid">
         {% for product in products %}
-            <div class="product-card">
-                <a href="{{ url_for('product_detail', product_id=product.id) }}">
-                    <img src="{{ url_for('uploaded_file', filename=product.image) }}" alt="{{ product.name }}">
-                    <h3>{{ product.name }}</h3>
-                </a>
-                <p>RM{{ "%.2f"|format(product.price) }}</p>
-            </div>
+          <article class="product-card">
+            <a href="{{ url_for('product_detail', product_id=product.id) }}">
+              <figure>
+                <img src="{{ url_for('uploads', filename=product.image) }}" alt="{{ product.name }}">
+              </figure>
+              <div class="product-info">
+                <h2 class="product-name">{{ product.name }}</h2>
+                <p class="product-price">RM{{ "%.2f"|format(product.price) }}</p>
+              </div>
+            </a>
+          </article>
         {% endfor %}
-    </div>
-
-
-{% else %}
-    <p style="text-align: center; font-weight: bold; margin-top: 50px;">No products found.</p>
-{% endif %}
+      </section>
+    {% else %}
+      <p class="no-products">No products found.</p>
+    {% endif %}
+  </main>
 
 </body>
 </html>

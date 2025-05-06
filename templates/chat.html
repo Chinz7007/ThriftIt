@@ -1,48 +1,156 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Simple Chatbox</title>
-  <link rel="stylesheet" href="style_chat.css">
-</head>
-<body>
-  <div class="chat-container" id="chat">
-    <!-- Messages will appear here -->
-  </div>
-  <div class="input-area">
-    <input type="text" id="userInput" placeholder="Type your message...">
-    <button onclick="sendMessage()">Send</button>
-  </div>
-
-  <script>
-    function sendMessage() {
-      const input = document.getElementById("userInput");
-      const message = input.value.trim();
-      if (message === "") return;
-
-      const chat = document.getElementById("chat");
-
-      // User message
-      const userMsg = document.createElement("div");
-      userMsg.className = "message user";
-      userMsg.innerHTML = `
-        <div class="icon">ØG</div>
-        <div class="text">${message}</div>
-      `;
-      chat.appendChild(userMsg);
-
-      // Bot reply (simple echo)
-      const botMsg = document.createElement("div");
-      botMsg.className = "message bot";
-      botMsg.innerHTML = `
-        <div class="icon">ØG</div>
-        <div class="text">You said: ${message}</div>
-      `;
-      chat.appendChild(botMsg);
-
-      input.value = "";
-      chat.scrollTop = chat.scrollHeight;
+  <title>Chat with {{ other_user.student_id }} - ThriftIt</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.10.7/dayjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.10.7/plugin/relativeTime.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
     }
-  </script>
-</body>
+    
+    .chat-header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .chat-title {
+      display: flex;
+      align-items: center;
+    }
+    
+    .back-btn {
+      color: white;
+      text-decoration: none;
+      margin-right: 15px;
+      font-size: 24px;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #fff;
+      color: #4CAF50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      font-weight: bold;
+    }
+    
+    .chat-container {
+      flex-grow: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .message {
+      max-width: 70%;
+      padding: 10px 15px;
+      border-radius: 18px;
+      margin-bottom: 10px;
+      word-wrap: break-word;
+    }
+    
+    .message.sent {
+      align-self: flex-end;
+      background-color: #DCF8C6;
+    }
+    
+    .message.received {
+      align-self: flex-start;
+      background-color: white;
+    }
+    
+    .message-time {
+      font-size: 11px;
+      color: #888;
+      text-align: right;
+      margin-top: 5px;
+    }
+    
+    .input-area {
+      padding: 15px;
+      background-color: white;
+      display: flex;
+      border-top: 1px solid #eee;
+    }
+    
+    #messageInput {
+      flex-grow: 1;
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      margin-right: 10px;
+      outline: none;
+    }
+    
+    #sendBtn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    
+    .status-indicator {
+      padding: 5px 10px;
+      text-align: center;
+      color: #666;
+      font-style: italic;
+      font-size: 12px;
+    }
+    
+    .date-divider {
+      text-align: center;
+      color: #888;
+      margin: 15px 0;
+      position: relative;
+    }
+    
+    .date-divider::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background-color: #ddd;
+    }
+    
+    .date-divider::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background-color: #ddd;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #888;
+    }
+
+  </style>
+
+</head>
 </html>

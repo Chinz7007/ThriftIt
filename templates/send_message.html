@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ThriftIt Chat</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style_chat.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    .chat-container {
+      height: 400px;
+      border: 1px solid #ddd;
+      margin: 20px;
+      padding: 10px;
+      overflow-y: auto;
+      background-color: white;
+      border-radius: 5px;
+    }
+    .chat-controls {
+      margin: 20px;
+      padding: 10px;
+    }
+    .input-area {
+      display: flex;
+      margin: 20px;
+    }
+    #userInput {
+      flex-grow: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px 0 0 5px;
+    }
+    #sendBtn {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 0 5px 5px 0;
+    }
+    .message {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      display: flex;
+      align-items: flex-start;
+    }
+    .message.you {
+      background-color: #e1f5fe;
+      margin-left: 20%;
+    }
+    .message.them {
+      background-color: #f5f5f5;
+      margin-right: 20%;
+    }
+    .icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      font-size: 12px;
+    }
+    .text {
+      flex-grow: 1;
+      padding: 5px;
+    }
+    #recipient {
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      margin-left: 10px;
+    }
+    .status {
+      margin: 10px 20px;
+      color: #666;
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+  {% include 'header.html' %}
+  
+  <div class="chat-controls">
+    <label for="recipient">Send to:</label>
+    <select id="recipient">
+      {% for u in users if u.id != current_user.id %}
+        <option value="{{ u.id }}">{{ u.student_id }} ({{ u.student_email }})</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="status" id="connectionStatus">Connecting to chat server...</div>
+  <div class="chat-container" id="chat"></div>
+  
+  <div class="input-area">
+    <input type="text" id="userInput" placeholder="Type your message...">
+    <button id="sendBtn">Send</button>
+  </div>
+
+  <script>
+    // Initialize socket connection
+    const socket = io();
+    const statusDisplay = document.getElementById('connectionStatus');
+    const currentUserId = {{ current_user.id }};
+    let selectedRecipient = document.getElementById("recipient").value;
+    
+    // Connection handling
+    socket.on('connect', () => {
+      statusDisplay.textContent = 'Connected to chat server!';
+      statusDisplay.style.color = '#4CAF50';
+      
+      // Join personal room
+      socket.emit('join', { user_id: currentUserId });
+      
+      // Load conversation history for the currently selected recipient
+      loadConversation(selectedRecipient);
+    });
+    
+    socket.on('disconnect', () => {
+      statusDisplay.textContent = 'Disconnected from chat server. Trying to reconnect...';
+      statusDisplay.style.color = '#f44336';
+    });
+    
+    // Message display functions
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("userInput");
+    const recipient = document.getElementById("recipient");
+    
+    // Update selected recipient when dropdown changes
+    recipient.addEventListener('change', () => {
+      selectedRecipient = recipient.value;
+      // Clear chat and load conversation for new recipient
+      chat.innerHTML = '';
+      loadConversation(selectedRecipient);
+    });
+    
+    // Send message function
+    document.getElementById("sendBtn").onclick = sendMessage;
+    
+    // Allow sending with Enter key
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+    
+    function sendMessage() {
+      const content = input.value.trim();
+      if (!content) return;
+      
+      const data = {
+        sender_id: currentUserId,
+        receiver_id: parseInt(selectedRecipient),
+        content: content
+      };
+      
+      // Disable input temporarily to prevent double-sending
+      input.disabled = true;
+      
+      // Send via socket
+      socket.emit('send_message', data);
+      
+      // Clear input field
+      input.value = '';
+      input.disabled = false;
+      input.focus();
+    }
+    
+    // Load conversation history from API
+    function loadConversation(userId) {
+      statusDisplay.textContent = 'Loading conversation...';
+      
+      fetch(`/api/conversations/${userId}`)
+        .then(response => response.json())
+        .then(messages => {
+          chat.innerHTML = ''; // Clear existing messages
+          
+          if (messages.length === 0) {
+            statusDisplay.textContent = 'No messages yet. Send one to start the conversation!';
+          } else {
+            statusDisplay.textContent = `Showing ${messages.length} messages`;
+            
+            // Display all messages
+            messages.forEach(msg => {
+              appendMessage(
+                msg.is_sender ? 'you' : 'them',
+                msg.content,
+                msg.sender_name,
+                msg.timestamp
+              );
+            });
+            
+            // Scroll to bottom
+            chat.scrollTop = chat.scrollHeight;
+          }
+        })
+        .catch(error => {
+          console.error('Error loading conversation:', error);
+          statusDisplay.textContent = 'Error loading conversation. Please refresh.';
+          statusDisplay.style.color = '#f44336';
+        });
+    }
+    
+    // Handle incoming messages
+    socket.on('new_message', msg => {
+      console.log('Received message:', msg);
+      
+      // If the message is from the currently selected user
+      if (msg.sender_id == selectedRecipient) {
+        appendMessage('them', msg.content, 'They', msg.timestamp);
+      } else {
+        // Notify about message from other user
+        statusDisplay.textContent = `New message from user ID: ${msg.sender_id}`;
+        statusDisplay.style.color = '#ff9800';
+      }
+    });
+    
+    // Handle sent message confirmation
+    socket.on('message_sent', msg => {
+      console.log('Message sent confirmation:', msg);
+      
+      // If this is for the currently selected conversation
+      if (msg.receiver_id == selectedRecipient) {
+        appendMessage('you', msg.content, 'You', msg.timestamp);
+      }
+    });
+    
+    function appendMessage(who, text, name, timestamp) {
+      const div = document.createElement("div");
+      div.className = `message ${who}`;
+      
+      // Format timestamp
+      const formattedTime = new Date(timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      
+      div.innerHTML = `
+        <div class="icon">${name.substring(0, 1)}</div>
+        <div class="text">
+          ${text}
+          <div style="font-size: 11px; color: #888; text-align: right; margin-top: 5px;">
+            ${formattedTime}
+          </div>
+        </div>`;
+      
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+  </script>
+</body>
+</html>

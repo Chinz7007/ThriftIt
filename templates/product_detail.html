@@ -82,19 +82,11 @@
     </style>
 </head>
 <body>
-
-
-<nav>
-    <a href="/">Home</a>
-    <a href="/products">Products</a>
-</nav>
-<hr>
-
-
+{%include 'header.html'%}
 <div class="container">
 
     <div class="main-product">
-        <img src="{{ url_for('uploaded_file', filename=product.image) }}" alt="{{ product.name }}">
+        <img src="{{ url_for('uploads', filename=product.image) }}" alt="{{ product.name }}">
         <h1>{{ product.name }}</h1>
         <p>Condition: <strong>{{ product.condition }}</strong></p>
         <p>Description: {{product.description}}</p>
@@ -109,7 +101,7 @@
         {% for item in recent_products %}
         {% if item.id != product.id %}
         <div class="recent-item">
-            <img src="{{ url_for('uploaded_file', filename=item.image) }}" alt="{{ item.name }}">
+            <img src="{{ url_for('uploads', filename=item.image) }}" alt="{{ item.name }}">
             <a href="{{ url_for('product_detail', product_id=item.id) }}">{{ item.name }}</a>
         </div>
         {% endif %}

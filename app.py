@@ -1,6 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory, flash
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO, join_room, emit
+from flask_socketio import SocketIO, join_room, emit, send
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -110,6 +110,7 @@ def logout():
 
 
 # --- application routes ---
+    
 @app.route('/')
 @login_required
 def home():
@@ -167,27 +168,124 @@ def product_detail(product_id):
     recent_products = Product.query.order_by(Product.id.desc()).limit(10).all()
     return render_template("product_detail.html", product=product, recent_products=recent_products)
 
-@app.route("/send_message", methods=["GET", "POST"])
+@app.route("/send_message", methods=["GET"])
 @login_required
 def send_message():
-    if request.method == "POST":
-        sender_id   = int(request.form.get("sender_id"))
-        receiver_id = int(request.form.get("receiver_id"))
-        content     = request.form.get("content")
-        message     = Message(content=content, sender_id=sender_id, receiver_id=receiver_id)
-        db.session.add(message)
-        db.session.commit()
-        room = f"user_{receiver_id}"
-        socketio.emit("new_message", {"content": content, "sender_id": sender_id}, room=room)
-        return redirect(url_for("inbox", user_id=sender_id))
     users = User.query.all()
     return render_template("send_message.html", users=users)
 
-@app.route("/inbox/<int:user_id>")
+@app.route("/inbox")
 @login_required
-def inbox(user_id):
-    messages = Message.query.filter_by(receiver_id=user_id).order_by(Message.timestamp.desc()).all()
-    return render_template("inbox.html", messages=messages, user_id=user_id)
+def inbox():
+    # Get all users for the conversation list
+    users = User.query.filter(User.id != current_user.id).all()
+    
+    # For each user, get the most recent message (if any)
+    conversations = []
+    for user in users:
+        # Find the most recent message between current_user and this user
+        last_message = Message.query.filter(
+            ((Message.sender_id == current_user.id) & (Message.receiver_id == user.id)) |
+            ((Message.sender_id == user.id) & (Message.receiver_id == current_user.id))
+        ).order_by(Message.timestamp.desc()).first()
+        
+        if last_message:
+            conversations.append({
+                'user': user,
+                'last_message': last_message,
+                'unread_count': Message.query.filter_by(
+                    sender_id=user.id, 
+                    receiver_id=current_user.id
+                ).count()  # Simple unread count implementation
+            })
+        else:
+            conversations.append({
+                'user': user,
+                'last_message': None,
+                'unread_count': 0
+            })
+    
+    # Sort by most recent message
+    conversations.sort(key=lambda x: x['last_message'].timestamp if x['last_message'] else datetime.min, reverse=True)
+    
+    return render_template("inbox.html", conversations=conversations)
+
+@app.route("/api/conversations/<int:user_id>")
+@login_required
+def get_conversation(user_id):
+    # Get all messages between current_user and the specified user
+    messages = Message.query.filter(
+        ((Message.sender_id == current_user.id) & (Message.receiver_id == user_id)) |
+        ((Message.sender_id == user_id) & (Message.receiver_id == current_user.id))
+    ).order_by(Message.timestamp).all()
+    
+    message_list = []
+    for msg in messages:
+        message_list.append({
+            'id': msg.id,
+            'content': msg.content,
+            'timestamp': msg.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+            'is_sender': msg.sender_id == current_user.id,
+            'sender_name': msg.sender.student_id
+        })
+    
+    return jsonify(message_list)
+
+@app.route("/chat/<int:user_id>")
+@login_required
+def chat(user_id):
+    other_user = User.query.get_or_404(user_id)
+    return render_template("chat.html", other_user=other_user)
+
+#Message Feature
+@socketio.on('join')
+def handle_join(data):
+    """Client tells us who they are so we can put them in their personal room."""
+    user_id = data.get('user_id')
+    if user_id:
+        room = f"user_{user_id}"
+        join_room(room)
+        print(f"User {user_id} joined room {room}")
+
+@socketio.on('send_message')
+def handle_socket_message(data):
+    """
+    Data contains: sender_id, receiver_id, content.
+    Save to DB, then emit to the receiver's room.
+    """
+    sender_id = int(data['sender_id'])
+    receiver_id = int(data['receiver_id'])
+    content = data['content']
+
+    print(f"Received message: {content} from {sender_id} to {receiver_id}")
+
+    # 1) save to database
+    msg = Message(content=content, sender_id=sender_id, receiver_id=receiver_id)
+    db.session.add(msg)
+    db.session.commit()
+
+    # 2) emit to the receiver's room
+    room = f"user_{receiver_id}"
+    emit('new_message', {
+        'id': msg.id,
+        'content': content,
+        'sender_id': sender_id,
+        'receiver_id': receiver_id,
+        'timestamp': msg.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+    }, room=room)
+    
+    # 3) Also emit back to the sender for confirmation
+    sender_room = f"user_{sender_id}"
+    emit('message_sent', {
+        'id': msg.id,
+        'content': content,
+        'receiver_id': receiver_id,
+        'timestamp': msg.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+    }, room=sender_room)
+
+# Create database tables
+with app.app_context():
+    db.create_all()
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)

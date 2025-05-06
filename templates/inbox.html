@@ -1,0 +1,163 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ThriftIt - My Inbox</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .conversation-list {
+      width: 100%;
+      max-width: 800px;
+      margin: 20px auto;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    
+    .conversation {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+      background-color: white;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .conversation:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .conversation:last-child {
+      border-bottom: none;
+    }
+    
+    .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      font-weight: bold;
+      color: #555;
+    }
+    
+    .conversation-info {
+      flex-grow: 1;
+    }
+    
+    .conversation-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    
+    .sender-name {
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .timestamp {
+      color: #888;
+      font-size: 12px;
+    }
+    
+    .preview {
+      color: #666;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 500px;
+    }
+    
+    .unread-badge {
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 50%;
+      min-width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: #888;
+    }
+    
+    .page-title {
+      text-align: center;
+      margin: 30px 0;
+      color: #333;
+    }
+    
+    .action-btn {
+      display: inline-block;
+      margin: 20px auto;
+      padding: 10px 15px;
+      background-color: #4CAF50;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      text-align: center;
+    }
+    
+    .center-btn {
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  {% include 'header.html' %}
+  
+  <h1 class="page-title">My Messages</h1>
+  
+  <div class="center-btn">
+    <a href="{{ url_for('send_message') }}" class="action-btn">New Message</a>
+  </div>
+  
+  <div class="conversation-list">
+    {% if conversations %}
+      {% for conv in conversations %}
+        <div class="conversation" onclick="window.location.href='{{ url_for('chat', user_id=conv.user.id) }}'">
+          <div class="avatar">{{ conv.user.student_id[0] | upper }}</div>
+          <div class="conversation-info">
+            <div class="conversation-header">
+              <span class="sender-name">{{ conv.user.student_id }}</span>
+              {% if conv.last_message %}
+                <span class="timestamp">{{ conv.last_message.timestamp.strftime('%b %d, %H:%M') }}</span>
+              {% endif %}
+            </div>
+            <div class="preview">
+              {% if conv.last_message %}
+                {% if conv.last_message.sender_id == current_user.id %}
+                  You: {{ conv.last_message.content }}
+                {% else %}
+                  {{ conv.last_message.content }}
+                {% endif %}
+              {% else %}
+                No messages yet
+              {% endif %}
+            </div>
+          </div>
+          {% if conv.unread_count > 0 %}
+            <div class="unread-badge">{{ conv.unread_count }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <p>You don't have any messages yet.</p>
+        <p>Start a conversation with someone by clicking the "New Message" button above.</p>
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>
