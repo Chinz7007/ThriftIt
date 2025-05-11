@@ -112,3 +112,131 @@
 
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Product Detail</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0d0d0d;
+      color: white;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      border: 1px solid #333;
+      padding: 20px;
+      background-color: #1a1a1a;
+      border-radius: 8px;
+      position: relative;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .price {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .buttons {
+      margin-bottom: 30px;
+    }
+
+    .button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      background-color: #00b894;
+      color: white;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .details h2 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .detail-item {
+      margin: 5px 0;
+    }
+
+    .detail-item span {
+      color: #bbb;
+    }
+
+    a {
+      color: #00cec9;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Favourite Star Styles */
+    .fav-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+
+    .fav-star {
+      cursor: pointer;
+      font-size: 28px;
+      color: gold;
+      transition: color 0.3s;
+    }
+
+    input[type="checkbox"] {
+      display: none;
+    }
+
+    input[type="checkbox"] + label .fav-star::before {
+      content: '★'; /* filled star */
+    }
+
+    input[type="checkbox"]:checked + label .fav-star::before {
+      content: '☆'; /* hollow star */
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Favourite Star -->
+  <div class="fav-container">
+    <input type="checkbox" id="favourite-toggle" />
+    <label for="favourite-toggle">
+      <span class="fav-star"></span>
+    </label>
+  </div>
+
+  <h1>[Product Title Here]</h1>
+  <div class="price">RM[Price]</div>
+
+  <div class="buttons">
+    <a href="chat.html?product_id=123" class="button">Chat</a>
+  </div>
+
+  <div class="details">
+    <h2>Details</h2>
+    <div class="detail-item"><strong>Condition:</strong> <span>[Condition Here]</span></div>
+    <div class="detail-item"><strong>Category:</strong> <a href="#">[Category Here]</a></div>
+    <div class="detail-item"><strong>Bumped:</strong> <span>[e.g., 2 days ago by username]</span></div>
+  </div>
+</div>
+
+</body>
+</html>
+    
