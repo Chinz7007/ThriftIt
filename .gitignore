@@ -1,9 +1,48 @@
-.venv/
-venv/
+# Byte-compiled / optimized files
 __pycache__/
 *.py[cod]
-*.sqlite3
-.vscode/
-.DS_Store
-Thumbs.db
+*$py.class
 
+# C extensions
+*.so
+
+# Virtual Environment
+venv/
+ENV/
+.env/
+env/
+.venv/
+
+# Flask instance folder
+instance/
+
+# SQLite database files
+*.sqlite3
+*.db
+
+# Pytest cache
+.pytest_cache/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# IDE/editor settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs and temp files
+*.log
+tmp/
+*.tmp
+*.swp
+*.bak
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
