@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist - Marketplace</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .wishlist-stats {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 3rem;
+            position: relative;
+        }
+
+        .wishlist-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .wishlist-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .wishlist-btn.active {
+            color: #e74c3c;
+            background: white;
+        }
+
+        .product-info {
+            padding: 20px;
+        }
+
+        .product-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .product-price {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .stars {
+            color: #ffd700;
+        }
+
+        .rating-text {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #3498db;
+            border: 2px solid #3498db;
+        }
+
+        .btn-secondary:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .empty-wishlist {
+            text-align: center;
+            background: white;
+            border-radius: 15px;
+            padding: 60px 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: block;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .empty-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .empty-text {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .remove-animation {
+            animation: removeItem 0.5s ease-out forwards;
+        }
+
+        @keyframes removeItem {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.5);
+                height: 0;
+                margin: 0;
+                padding: 0;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2ecc71;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: #e74c3c;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .wishlist-stats {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>❤️ My Wishlist</h1>
+            <p>Save your favorite items for later</p>
+        </div>
+
+        <div class="wishlist-stats">
+            <div class="stat">
+                <div class="stat-number" id="itemCount">0</div>
+                <div class="stat-label">Items Saved</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="totalValue">RM0.00</div>
+                <div class="stat-label">Total Value</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="avgPrice">RM0.00</div>
+                <div class="stat-label">Average Price</div>
+            </div>
+        </div>
+
+        <div class="product-grid" id="productGrid" style="display: none;">
+        </div>
+
+        <div class="empty-wishlist" id="emptyWishlist">
+            <div class="empty-icon">💔</div>
+            <h2 class="empty-title">Your wishlist is empty</h2>
+            <p class="empty-text">Start browsing and add items you love to your wishlist!</p>
+            <button class="btn btn-primary" onclick="window.location.reload()">Browse Products</button>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        let wishlistData = [];
+
+        function initializeWishlist() {
+            wishlistData = [];
+            updateStats();
+            showEmptyState();
+        }
+
+        function removeFromWishlist(button) {
+            const card = button.closest('.product-card');
+            const title = card.querySelector('.product-title').textContent;
+            const price = parseFloat(card.dataset.price);
+            
+            // Remove from data
+            wishlistData = wishlistData.filter(item => item.element !== card);
+            
+            // Animate removal
+            card.classList.add('remove-animation');
+            
+            setTimeout(() => {
+                card.remove();
+                updateStats();
+                showNotification(`"${title}" removed from wishlist`, 'success');
+                
+                if (wishlistData.length === 0) {
+                    showEmptyState();
+                }
+            }, 500);
+        }
+
+        function updateStats() {
+            const itemCount = wishlistData.length;
+            const totalValue = wishlistData.reduce((sum, item) => sum + item.price, 0);
+            const avgPrice = itemCount > 0 ? totalValue / itemCount : 0;
+
+            document.getElementById('itemCount').textContent = itemCount;
+            document.getElementById('totalValue').textContent = `RM${totalValue.toFixed(2)}`;
+            document.getElementById('avgPrice').textContent = `RM${avgPrice.toFixed(2)}`;
+        }
+
+        function showEmptyState() {
+            document.getElementById('productGrid').style.display = 'none';
+            document.getElementById('emptyWishlist').style.display = 'block';
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize wishlist on page load
+        document.addEventListener('DOMContentLoaded', initializeWishlist);
+    </script>
+</body>
+</html>
