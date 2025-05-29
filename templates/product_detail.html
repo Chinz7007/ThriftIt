@@ -1,41 +1,62 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ product.name }} – ThriftIt</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
         
         .container {
+            max-width: 1200px;
+            margin: 20px auto;
             display: flex;
-            margin-top: 10px;
+            gap: 20px;
         }
-
+        
         .main-product {
-            width: 1000px;
+            flex: 1;
             background-color: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            text-align: center;
+            position: relative;
         }
-
+        
         .main-product img {
             max-width: 400px;
             border: 2px solid #ccc;
             border-radius: 8px;
             margin-bottom: 20px;
         }
-
+        
         .main-product h1 {
             font-size: 24px;
             margin-bottom: 10px;
         }
-
-        .main-product p {
-            font-size: 18px;
+        
+        .buttons {
+            margin: 20px 0;
         }
-
+        
+        .button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            background-color: #00b894;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
         .back-link {
             display: inline-block;
             margin-top: 20px;
@@ -43,29 +64,34 @@
             text-decoration: none;
             font-weight: bold;
         }
-
         
         .recent-box {
-            width: 200px;
+            width: 250px;
             background-color: #f5f5f5;
             padding: 15px;
-            margin-left: 800px;
             border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-
+        
         .recent-box h3 {
             font-size: 18px;
             margin-bottom: 15px;
             text-align: center;
         }
-
+        
         .recent-item {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
         }
-
+        
+        .recent-item:last-child {
+            border-bottom: none;
+        }
+        
         .recent-item img {
             width: 50px;
             height: 50px;
@@ -73,170 +99,95 @@
             border: 1px solid #ddd;
             object-fit: cover;
         }
-
+        
         .recent-item a {
             text-decoration: none;
             color: #333;
             font-size: 14px;
         }
+        
+        .detail-item {
+            margin: 8px 0;
+            font-size: 16px;
+        }
+        
+        .detail-item strong {
+            display: inline-block;
+            width: 100px;
+        }
+        
+        /* Favourite Star Styles */
+        .fav-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        
+        .fav-star {
+            cursor: pointer;
+            font-size: 28px;
+            color: gold;
+            transition: color 0.3s;
+        }
+        
+        input[type="checkbox"] {
+            display: none;
+        }
+        
+        input[type="checkbox"] + label .fav-star::before {
+            content: '☆'; /* hollow star */
+            color: #999;
+        }
+        
+        input[type="checkbox"]:checked + label .fav-star::before {
+            content: '★'; /* filled star */
+            color: gold;
+        }
     </style>
 </head>
 <body>
-{%include 'header.html'%}
-<div class="container">
-
-    <div class="main-product">
-        <img src="{{ url_for('uploads', filename=product.image) }}" alt="{{ product.name }}">
-        <h1>{{ product.name }}</h1>
-        <p>Condition: <strong>{{ product.condition }}</strong></p>
-        <p>Description: {{product.description}}</p>
-        <p><strong>Price:</strong> RM{{ "%.2f"|format(product.price) }}</p>
-        <p>Contact info:</p>
-
-        <a class="back-link" href="/products">← Back to Products</a>
-    </div>
-
-    <div class="recent-box">
-        <h3>Recently Added</h3>
-        {% for item in recent_products %}
-        {% if item.id != product.id %}
-        <div class="recent-item">
-            <img src="{{ url_for('uploads', filename=item.image) }}" alt="{{ item.name }}">
-            <a href="{{ url_for('product_detail', product_id=item.id) }}">{{ item.name }}</a>
+    {% include 'header.html' %}
+    
+    <div class="container">
+        <div class="main-product">
+            <!-- Favourite Star -->
+            <div class="fav-container">
+                <input type="checkbox" id="favourite-toggle" />
+                <label for="favourite-toggle">
+                    <span class="fav-star"></span>
+                </label>
+            </div>
+            
+            <img src="{{ url_for('uploads', filename=product.image) }}" alt="{{ product.name }}">
+            <h1>{{ product.name }}</h1>
+            <div class="price"><strong>Price:</strong> RM{{ "%.2f"|format(product.price) }}</div>
+            
+            <div class="buttons">
+                <a href="{{ url_for('send_message', user_id=product.id) }}" class="button">Chat</a>
+            </div>
+            
+            <div class="details">
+                <h2>Details</h2>
+                <div class="detail-item"><strong>Condition:</strong> {{ product.condition }}</div>
+                <div class="detail-item"><strong>Description:</strong> {{ product.description }}</div>
+                <div class="detail-item"><strong>Contact:</strong> {{ product.contact_info }}</div>
+            </div>
+            
+            <a class="back-link" href="{{ url_for('products') }}">← Back to Products</a>
         </div>
-        {% endif %}
-        {% endfor %}
+        
+        <div class="recent-box">
+            <h3>Recently Added</h3>
+            {% for item in recent_products %}
+            {% if item.id != product.id %}
+            <div class="recent-item">
+                <img src="{{ url_for('uploads', filename=item.image) }}" alt="{{ item.name }}">
+                <a href="{{ url_for('product_detail', product_id=item.id) }}">{{ item.name }}</a>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
     </div>
-
-</div>
-
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Product Detail</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #0d0d0d;
-      color: white;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: auto;
-      border: 1px solid #333;
-      padding: 20px;
-      background-color: #1a1a1a;
-      border-radius: 8px;
-      position: relative;
-    }
-
-    h1 {
-      font-size: 22px;
-      margin-bottom: 10px;
-    }
-
-    .price {
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-
-    .buttons {
-      margin-bottom: 30px;
-    }
-
-    .button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      background-color: #00b894;
-      color: white;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    .details h2 {
-      font-size: 18px;
-      margin-bottom: 10px;
-    }
-
-    .detail-item {
-      margin: 5px 0;
-    }
-
-    .detail-item span {
-      color: #bbb;
-    }
-
-    a {
-      color: #00cec9;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    /* Favourite Star Styles */
-    .fav-container {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-    }
-
-    .fav-star {
-      cursor: pointer;
-      font-size: 28px;
-      color: gold;
-      transition: color 0.3s;
-    }
-
-    input[type="checkbox"] {
-      display: none;
-    }
-
-    input[type="checkbox"] + label .fav-star::before {
-      content: '★'; /* filled star */
-    }
-
-    input[type="checkbox"]:checked + label .fav-star::before {
-      content: '☆'; /* hollow star */
-      color: #999;
-    }
-  </style>
-</head>
-<body>
-
-<div class="container">
-  <!-- Favourite Star -->
-  <div class="fav-container">
-    <input type="checkbox" id="favourite-toggle" />
-    <label for="favourite-toggle">
-      <span class="fav-star"></span>
-    </label>
-  </div>
-
-  <h1>[Product Title Here]</h1>
-  <div class="price">RM[Price]</div>
-
-  <div class="buttons">
-    <a href="chat.html?product_id=123" class="button">Chat</a>
-  </div>
-
-  <div class="details">
-    <h2>Details</h2>
-    <div class="detail-item"><strong>Condition:</strong> <span>[Condition Here]</span></div>
-    <div class="detail-item"><strong>Category:</strong> <a href="#">[Category Here]</a></div>
-    <div class="detail-item"><strong>Bumped:</strong> <span>[e.g., 2 days ago by username]</span></div>
-  </div>
-</div>
-
 </body>
 </html>
     
