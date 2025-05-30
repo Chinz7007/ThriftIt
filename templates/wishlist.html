@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +12,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            background: #ffffff;
             min-height: 100vh;
             padding: 20px;
         }
@@ -26,26 +25,28 @@
         .header {
             text-align: center;
             margin-bottom: 40px;
-            color: white;
+            color: #dc3545;
         }
 
         .header h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 4px rgba(220, 53, 69, 0.1);
         }
 
         .header p {
             font-size: 1.1rem;
-            opacity: 0.9;
+            opacity: 0.8;
+            color: #666;
         }
 
         .wishlist-stats {
             background: white;
             border-radius: 15px;
-            padding: 20px;
+            padding: 30px;
             margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(220, 53, 69, 0.1);
+            border: 2px solid #f8f9fa;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -58,12 +59,13 @@
         .stat-number {
             font-size: 2rem;
             font-weight: bold;
-            color: #3498db;
+            color: #dc3545;
         }
 
         .stat-label {
             color: #666;
             font-size: 0.9rem;
+            margin-top: 5px;
         }
 
         .product-grid {
@@ -77,24 +79,26 @@
             background: white;
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.1);
             transition: all 0.3s ease;
             position: relative;
+            border: 2px solid #f8f9fa;
         }
 
         .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(220, 53, 69, 0.15);
+            border-color: #dc3545;
         }
 
         .product-image {
             width: 100%;
             height: 200px;
-            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #999;
+            color: #adb5bd;
             font-size: 3rem;
             position: relative;
         }
@@ -103,56 +107,60 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            background: rgba(255,255,255,0.9);
-            border: none;
+            background: rgba(255,255,255,0.95);
+            border: 2px solid #dc3545;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
+            color: #dc3545;
         }
 
         .wishlist-btn:hover {
-            background: white;
+            background: #dc3545;
+            color: white;
             transform: scale(1.1);
         }
 
         .wishlist-btn.active {
-            color: #e74c3c;
-            background: white;
+            background: #dc3545;
+            color: white;
         }
 
         .product-info {
-            padding: 20px;
+            padding: 25px;
         }
 
         .product-title {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             color: #333;
+            line-height: 1.4;
         }
 
         .product-price {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             font-weight: bold;
-            color: #3498db;
-            margin-bottom: 10px;
+            color: #dc3545;
+            margin-bottom: 12px;
         }
 
         .product-rating {
             display: flex;
             align-items: center;
-            gap: 5px;
-            margin-bottom: 15px;
+            gap: 8px;
+            margin-bottom: 20px;
         }
 
         .stars {
-            color: #ffd700;
+            color: #ffc107;
+            font-size: 1.1rem;
         }
 
         .rating-text {
@@ -162,82 +170,90 @@
 
         .product-actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
 
         .btn {
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
             flex: 1;
+            font-size: 0.95rem;
         }
 
         .btn-primary {
-            background: #3498db;
+            background: #dc3545;
             color: white;
         }
 
         .btn-primary:hover {
-            background: #2980b9;
+            background: #c82333;
             transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3);
         }
 
         .btn-secondary {
-            background: #f8f9fa;
-            color: #3498db;
-            border: 2px solid #3498db;
+            background: white;
+            color: #dc3545;
+            border: 2px solid #dc3545;
         }
 
         .btn-secondary:hover {
-            background: #3498db;
+            background: #dc3545;
             color: white;
+            transform: translateY(-2px);
         }
 
         .empty-wishlist {
             text-align: center;
             background: white;
-            border-radius: 15px;
-            padding: 60px 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 20px;
+            padding: 80px 40px;
+            box-shadow: 0 15px 40px rgba(220, 53, 69, 0.1);
+            border: 2px solid #f8f9fa;
             display: block;
         }
 
         .empty-icon {
-            font-size: 4rem;
-            color: #ddd;
-            margin-bottom: 20px;
+            font-size: 5rem;
+            color: #dc3545;
+            margin-bottom: 25px;
+            opacity: 0.7;
         }
 
         .empty-title {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            font-weight: 600;
         }
 
         .empty-text {
             color: #666;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
+            font-size: 1.1rem;
+            line-height: 1.5;
         }
 
         .remove-animation {
-            animation: removeItem 0.5s ease-out forwards;
+            animation: removeItem 0.6s ease-out forwards;
         }
 
         @keyframes removeItem {
             0% {
                 opacity: 1;
-                transform: scale(1);
+                transform: scale(1) rotate(0deg);
             }
             50% {
-                opacity: 0.5;
-                transform: scale(0.8);
+                opacity: 0.3;
+                transform: scale(0.8) rotate(-5deg);
             }
             100% {
                 opacity: 0;
-                transform: scale(0.5);
+                transform: scale(0.3) rotate(-10deg);
                 height: 0;
                 margin: 0;
                 padding: 0;
@@ -246,16 +262,18 @@
 
         .notification {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #2ecc71;
+            top: 30px;
+            right: 30px;
+            background: #dc3545;
             color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            padding: 18px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(220, 53, 69, 0.3);
             transform: translateX(400px);
-            transition: transform 0.3s ease;
+            transition: transform 0.4s ease;
             z-index: 1000;
+            font-weight: 500;
+            border: 2px solid rgba(255,255,255,0.2);
         }
 
         .notification.show {
@@ -263,7 +281,63 @@
         }
 
         .notification.error {
-            background: #e74c3c;
+            background: #dc3545;
+            box-shadow: 0 10px 30px rgba(220, 53, 69, 0.3);
+        }
+
+        .filter-sort {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.1);
+            border: 2px solid #f8f9fa;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .filter-group select {
+            padding: 8px 15px;
+            border: 2px solid #f8f9fa;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .filter-group select:focus {
+            border-color: #dc3545;
+            outline: none;
+        }
+
+        .clear-all-btn {
+            background: #f8f9fa;
+            color: #dc3545;
+            border: 2px solid #dc3545;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-left: auto;
+        }
+
+        .clear-all-btn:hover {
+            background: #dc3545;
+            color: white;
         }
 
         @media (max-width: 768px) {
@@ -273,46 +347,107 @@
             
             .wishlist-stats {
                 flex-direction: column;
-                gap: 20px;
+                gap: 25px;
+                padding: 25px;
             }
             
             .product-grid {
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                 gap: 20px;
             }
+
+            .filter-sort {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .clear-all-btn {
+                margin-left: 0;
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
 <body>
+    {% include 'header.html' %}
     <div class="container">
         <div class="header">
-            <h1>❤️ My Wishlist</h1>
+            <h1>Wishlist</h1>
             <p>Save your favorite items for later</p>
         </div>
 
         <div class="wishlist-stats">
             <div class="stat">
-                <div class="stat-number" id="itemCount">0</div>
+                <div class="stat-number" id="itemCount">5</div>
                 <div class="stat-label">Items Saved</div>
             </div>
             <div class="stat">
-                <div class="stat-number" id="totalValue">RM0.00</div>
+                <div class="stat-number" id="totalValue">RM1,247.50</div>
                 <div class="stat-label">Total Value</div>
             </div>
             <div class="stat">
-                <div class="stat-number" id="avgPrice">RM0.00</div>
+                <div class="stat-number" id="avgPrice">RM249.50</div>
                 <div class="stat-label">Average Price</div>
             </div>
         </div>
 
-        <div class="product-grid" id="productGrid" style="display: none;">
+        <div class="filter-sort" id="filterSort" style="display: none;">
+            <div class="filter-group">
+                <label for="sortBy">Sort by:</label>
+                <select id="sortBy" onchange="sortWishlist()">
+                    <option value="name">Name</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="rating">Rating</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterPrice">Price Range:</label>
+                <select id="filterPrice" onchange="filterWishlist()">
+                    <option value="all">All Prices</option>
+                    <option value="0-100">RM0 - RM100</option>
+                    <option value="100-300">RM100 - RM300</option>
+                    <option value="300-500">RM300 - RM500</option>
+                    <option value="500+">RM500+</option>
+                </select>
+            </div>
+            <button class="clear-all-btn" onclick="clearAllWishlist()">Clear All</button>
         </div>
 
-        <div class="empty-wishlist" id="emptyWishlist">
+        <div class="product-grid" id="productGrid">
+            {% for wishlist_item, product in wishlist_items %}
+            <div class="product-card" data-price="{{ product.price }}" data-name="{{ product.name.lower() }}" data-rating="4.5" data-product-id="{{ product.id }}">
+                <div class="product-image">
+                    {% if product.image %}
+                        <img src="{{ url_for('uploads', filename=product.image) }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        📦
+                    {% endif %}
+                    <button class="wishlist-btn active" onclick="removeFromWishlist(this, {{ product.id }})" title="Remove from wishlist">
+                        ❤️
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-title">{{ product.name }}</h3>
+                    <div class="product-price">RM{{ "%.2f"|format(product.price) }}</div>
+                    <div class="product-rating">
+                        <span class="stars">★★★★☆</span>
+                        <span class="rating-text">4.5 (Reviews)</span>
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn btn-primary">Add to Cart</button>
+                        <button class="btn btn-secondary" onclick="window.location.href='{{ url_for('product_detail', product_id=product.id) }}'">View Details</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="empty-wishlist" id="emptyWishlist" style="display: none;">
             <div class="empty-icon">💔</div>
             <h2 class="empty-title">Your wishlist is empty</h2>
             <p class="empty-text">Start browsing and add items you love to your wishlist!</p>
-            <button class="btn btn-primary" onclick="window.location.reload()">Browse Products</button>
+            <button class="btn btn-primary" onclick="window.location.href='{{ url_for('products') }}'">Browse Products</button>
         </div>
     </div>
 
@@ -322,34 +457,152 @@
         let wishlistData = [];
 
         function initializeWishlist() {
-            wishlistData = [];
+            const cards = document.querySelectorAll('.product-card');
+            wishlistData = Array.from(cards).map(card => ({
+                element: card,
+                price: parseFloat(card.dataset.price),
+                name: card.dataset.name,
+                rating: parseFloat(card.dataset.rating)
+            }));
+            
             updateStats();
-            showEmptyState();
+            
+            if (wishlistData.length > 0) {
+                document.getElementById('filterSort').style.display = 'flex';
+                document.getElementById('productGrid').style.display = 'grid';
+                document.getElementById('emptyWishlist').style.display = 'none';
+            }
         }
 
-        function removeFromWishlist(button) {
+        function removeFromWishlist(button, productId) {
             const card = button.closest('.product-card');
             const title = card.querySelector('.product-title').textContent;
-            const price = parseFloat(card.dataset.price);
             
-            // Remove from data
-            wishlistData = wishlistData.filter(item => item.element !== card);
-            
-            // Animate removal
-            card.classList.add('remove-animation');
-            
-            setTimeout(() => {
-                card.remove();
-                updateStats();
-                showNotification(`"${title}" removed from wishlist`, 'success');
-                
-                if (wishlistData.length === 0) {
-                    showEmptyState();
+            // Make API call to remove from wishlist
+            fetch(`/api/wishlist/remove/${productId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
                 }
-            }, 500);
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove from local data
+                    wishlistData = wishlistData.filter(item => item.element !== card);
+                    
+                    // Animate removal
+                    card.classList.add('remove-animation');
+                    
+                    setTimeout(() => {
+                        card.remove();
+                        updateStats();
+                        showNotification(data.message, 'success');
+                        
+                        if (wishlistData.length === 0) {
+                            showEmptyState();
+                        }
+                    }, 600);
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error removing item from wishlist', 'error');
+            });
+        }
+
+        function clearAllWishlist() {
+            if (wishlistData.length === 0) return;
+            
+            if (confirm('Are you sure you want to clear your entire wishlist?')) {
+                fetch('/api/wishlist/clear', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        wishlistData.forEach(item => {
+                            item.element.classList.add('remove-animation');
+                        });
+                        
+                        setTimeout(() => {
+                            wishlistData = [];
+                            updateStats();
+                            showEmptyState();
+                            showNotification(data.message, 'success');
+                        }, 600);
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error clearing wishlist', 'error');
+                });
+            }
+        }
+
+        function sortWishlist() {
+            const sortBy = document.getElementById('sortBy').value;
+            const grid = document.getElementById('productGrid');
+            
+            let sortedData = [...wishlistData];
+            
+            switch(sortBy) {
+                case 'price-low':
+                    sortedData.sort((a, b) => a.price - b.price);
+                    break;
+                case 'price-high':
+                    sortedData.sort((a, b) => b.price - a.price);
+                    break;
+                case 'rating':
+                    sortedData.sort((a, b) => b.rating - a.rating);
+                    break;
+                case 'name':
+                    sortedData.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+            }
+            
+            sortedData.forEach(item => {
+                grid.appendChild(item.element);
+            });
+        }
+
+        function filterWishlist() {
+            const filterPrice = document.getElementById('filterPrice').value;
+            
+            wishlistData.forEach(item => {
+                let show = true;
+                
+                if (filterPrice !== 'all') {
+                    const price = item.price;
+                    switch(filterPrice) {
+                        case '0-100':
+                            show = price <= 100;
+                            break;
+                        case '100-300':
+                            show = price > 100 && price <= 300;
+                            break;
+                        case '300-500':
+                            show = price > 300 && price <= 500;
+                            break;
+                        case '500+':
+                            show = price > 500;
+                            break;
+                    }
+                }
+                
+                item.element.style.display = show ? 'block' : 'none';
+            });
         }
 
         function updateStats() {
+            const visibleItems = wishlistData.filter(item => item.element.style.display !== 'none');
             const itemCount = wishlistData.length;
             const totalValue = wishlistData.reduce((sum, item) => sum + item.price, 0);
             const avgPrice = itemCount > 0 ? totalValue / itemCount : 0;
@@ -361,6 +614,7 @@
 
         function showEmptyState() {
             document.getElementById('productGrid').style.display = 'none';
+            document.getElementById('filterSort').style.display = 'none';
             document.getElementById('emptyWishlist').style.display = 'block';
         }
 
@@ -372,7 +626,7 @@
             
             setTimeout(() => {
                 notification.classList.remove('show');
-            }, 3000);
+            }, 3500);
         }
 
         // Initialize wishlist on page load

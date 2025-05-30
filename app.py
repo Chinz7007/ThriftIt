@@ -65,6 +65,20 @@ class Message(db.Model):
     sender_id   = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+class Wishlist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    date_added = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('wishlist_items', lazy=True))
+    product = db.relationship('Product', backref=db.backref('wishlisted_by', lazy=True))
+    
+    # Ensure a user can't add the same product twice
+    __table_args__ = (db.UniqueConstraint('user_id', 'product_id', name='unique_user_product'),)
+
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -236,6 +250,88 @@ def get_conversation(user_id):
 def chat(user_id):
     other_user = User.query.get_or_404(user_id)
     return render_template("chat.html", other_user=other_user)
+
+@app.route('/wishlist')
+@login_required
+def wishlist():
+    # Get all wishlist items for the current user with product details
+    wishlist_items = db.session.query(Wishlist, Product).join(
+        Product, Wishlist.product_id == Product.id
+    ).filter(Wishlist.user_id == current_user.id).all()
+    
+    return render_template('wishlist.html', wishlist_items=wishlist_items)
+
+@app.route('/api/wishlist/add/<int:product_id>', methods=['POST'])
+@login_required
+def add_to_wishlist(product_id):
+    try:
+        # Check if product exists
+        product = Product.query.get_or_404(product_id)
+        
+        # Check if already in wishlist
+        existing = Wishlist.query.filter_by(
+            user_id=current_user.id, 
+            product_id=product_id
+        ).first()
+        
+        if existing:
+            return jsonify({'success': False, 'message': 'Item already in wishlist'})
+        
+        # Add to wishlist
+        wishlist_item = Wishlist(user_id=current_user.id, product_id=product_id)
+        db.session.add(wishlist_item)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Added to wishlist'})
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/wishlist/remove/<int:product_id>', methods=['DELETE'])
+@login_required
+def remove_from_wishlist(product_id):
+    try:
+        wishlist_item = Wishlist.query.filter_by(
+            user_id=current_user.id, 
+            product_id=product_id
+        ).first()
+        
+        if not wishlist_item:
+            return jsonify({'success': False, 'message': 'Item not in wishlist'})
+        
+        db.session.delete(wishlist_item)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Removed from wishlist'})
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/wishlist/clear', methods=['DELETE'])
+@login_required
+def clear_wishlist():
+    try:
+        Wishlist.query.filter_by(user_id=current_user.id).delete()
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Wishlist cleared'})
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/wishlist/check/<int:product_id>')
+@login_required
+def check_wishlist_status(product_id):
+    """Check if a product is in the user's wishlist"""
+    exists = Wishlist.query.filter_by(
+        user_id=current_user.id, 
+        product_id=product_id
+    ).first() is not None
+    
+    return jsonify({'in_wishlist': exists})
 
 #Message Feature
 @socketio.on('join')
