@@ -1,468 +1,259 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Interface</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f5f5f5;
-            height: 100vh;
-            display: flex;
-        }
-
-        .chat-container {
-            display: flex;
-            width: 100%;
-            height: 100vh;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            background: white;
-        }
-
-        /* Left Sidebar */
-        .sidebar {
-            width: 350px;
-            background-color: #ffffff;
-            border-right: 1px solid #e0e0e0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .search-container {
-            padding: 15px;
-            background-color: #f8f9fa;
-        }
-
-        .search-box {
-            width: 100%;
-            padding: 12px 15px;
-            border: none;
-            border-radius: 25px;
-            background-color: #e9ecef;
-            font-size: 14px;
-            outline: none;
-            transition: background-color 0.2s;
-        }
-
-        .search-box:focus {
-            background-color: #dee2e6;
-        }
-
-        .search-box::placeholder {
-            color: #6c757d;
-        }
-
-        .contacts-list {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #6c757d;
-            font-size: 16px;
-        }
-
-        .contact-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .contact-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .contact-item.active {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        .contact-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            margin-right: 12px;
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            font-size: 16px;
-        }
-
-        .contact-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .contact-name {
-            font-weight: 500;
-            font-size: 15px;
-            margin-bottom: 3px;
-        }
-
-        .contact-preview {
-            color: #6c757d;
-            font-size: 13px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .contact-item.active .contact-preview {
-            color: rgba(255,255,255,0.8);
-        }
-
-        .contact-time {
-            font-size: 12px;
-            color: #6c757d;
-            margin-left: 8px;
-        }
-
-        .contact-item.active .contact-time {
-            color: rgba(255,255,255,0.8);
-        }
-
-        /* Main Chat Area */
-        .chat-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: #ffffff;
-        }
-
-        .chat-header {
-            padding: 15px 20px;
-            border-bottom: 1px solid #e0e0e0;
-            background-color: #f8f9fa;
-            display: flex;
-            align-items: center;
-        }
-
-        .chat-header-text {
-            color: #6c757d;
-            font-size: 14px;
-        }
-
-        .chat-header-name {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .empty-chat {
-            color: #6c757d;
-            font-size: 16px;
-            text-align: center;
-            margin: auto;
-        }
-
-        .date-separator {
-            text-align: center;
-            margin: 20px 0;
-            color: #6c757d;
-            font-size: 12px;
-        }
-
-        .message {
-            margin-bottom: 15px;
-            display: flex;
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .message.sent {
-            justify-content: flex-end;
-        }
-
-        .message.received {
-            justify-content: flex-start;
-        }
-
-        .message-bubble {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            font-size: 14px;
-            line-height: 1.4;
-            word-wrap: break-word;
-        }
-
-        .message.sent .message-bubble {
-            background-color: #dc3545;
-            color: white;
-            border-bottom-right-radius: 5px;
-        }
-
-        .message.received .message-bubble {
-            background-color: #e9ecef;
-            color: #333;
-            border-bottom-left-radius: 5px;
-        }
-
-        .message-time {
-            font-size: 11px;
-            opacity: 0.7;
-            margin-top: 4px;
-        }
-
-        .send-button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
-        .send-button:active {
-            transform: scale(0.95);
-        }
-
-        .online-indicator {
-            width: 8px;
-            height: 8px;
-            background-color: #28a745;
-            border-radius: 50%;
-            margin-left: 6px;
-            display: inline-block;
-        }
-
-        .unread-count {
-            background-color: #dc3545;
-            color: white;
-            border-radius: 50%;
-            min-width: 18px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: bold;
-            margin-left: auto;
-        }
-
-        .chat-input-container {
-            padding: 15px 20px;
-            border-top: 1px solid #e0e0e0;
-            background-color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 12px 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 25px;
-            outline: none;
-            font-size: 14px;
-            resize: none;
-            max-height: 100px;
-            background-color: #f8f9fa;
-        }
-
-        .chat-input:focus {
-            border-color: #dc3545;
-            background-color: white;
-        }
-
-        .chat-input:disabled {
-            background-color: #f8f9fa;
-            color: #6c757d;
-        }
-
-        .send-button {
-            width: 40px;
-            height: 40px;
-            border: none;
-            border-radius: 50%;
-            background-color: #dc3545;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            transition: background-color 0.2s;
-        }
-
-        .send-button:hover:not(:disabled) {
-            background-color: #c82333;
-        }
-
-        /* Scrollbar styling */
-        .contacts-list::-webkit-scrollbar,
-        .chat-messages::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .contacts-list::-webkit-scrollbar-track,
-        .chat-messages::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        .contacts-list::-webkit-scrollbar-thumb,
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 3px;
-        }
-
-        .contacts-list::-webkit-scrollbar-thumb:hover,
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-            }
-            
-            .chat-main {
-                display: none;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>ThriftIt Chat</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style_chat.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    .chat-container {
+      height: 400px;
+      border: 1px solid #ddd;
+      margin: 20px;
+      padding: 10px;
+      overflow-y: auto;
+      background-color: white;
+      border-radius: 5px;
+    }
+    .chat-controls {
+      margin: 20px;
+      padding: 10px;
+    }
+    .input-area {
+      display: flex;
+      margin: 20px;
+    }
+    #userInput {
+      flex-grow: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px 0 0 5px;
+    }
+    #sendBtn {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 0 5px 5px 0;
+    }
+    .message {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      display: flex;
+      align-items: flex-start;
+    }
+    .message.you {
+      background-color: #e1f5fe;
+      margin-left: 20%;
+    }
+    .message.them {
+      background-color: #f5f5f5;
+      margin-right: 20%;
+    }
+    .icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      font-size: 12px;
+    }
+    .text {
+      flex-grow: 1;
+      padding: 5px;
+    }
+    #recipient {
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      margin-left: 10px;
+    }
+    .status {
+      margin: 10px 20px;
+      color: #666;
+      font-style: italic;
+    }
+  </style>
 </head>
+
 <body>
-    <div class="chat-container">
-        <!-- Left Sidebar -->
-        <div class="sidebar">
-            <div class="search-container">
-                <input type="text" class="search-box" placeholder="Search contacts..." id="searchBox">
-            </div>
+  {% include 'header.html' %}
+  
+  <div class="chat-controls">
+    <label for="recipient">Send to:</label>
+    <select id="recipient">
+      {% for u in users if u.id != current_user.id %}
+        <option value="{{ u.id }}">{{ u.student_id }} ({{ u.student_email }})</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="status" id="connectionStatus">Connecting to chat server...</div>
+  <div class="chat-container" id="chat"></div>
+  
+  <div class="input-area">
+    <input type="text" id="userInput" placeholder="Type your message...">
+    <button id="sendBtn">Send</button>
+  </div>
+
+  <script>
+    // Initialize socket connection
+    const socket = io();
+    const statusDisplay = document.getElementById('connectionStatus');
+    const currentUserId = {{ current_user.id }};
+    let selectedRecipient = document.getElementById("recipient").value;
+    
+    // Connection handling
+    socket.on('connect', () => {
+      statusDisplay.textContent = 'Connected to chat server!';
+      statusDisplay.style.color = '#4CAF50';
+      
+      // Join personal room
+      socket.emit('join', { user_id: currentUserId });
+      
+      // Load conversation history for the currently selected recipient
+      loadConversation(selectedRecipient);
+    });
+    
+    socket.on('disconnect', () => {
+      statusDisplay.textContent = 'Disconnected from chat server. Trying to reconnect...';
+      statusDisplay.style.color = '#f44336';
+    });
+    
+    // Message display functions
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("userInput");
+    const recipient = document.getElementById("recipient");
+    
+    // Update selected recipient when dropdown changes
+    recipient.addEventListener('change', () => {
+      selectedRecipient = recipient.value;
+      // Clear chat and load conversation for new recipient
+      chat.innerHTML = '';
+      loadConversation(selectedRecipient);
+    });
+    
+    // Send message function
+    document.getElementById("sendBtn").onclick = sendMessage;
+    
+    // Allow sending with Enter key
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+    
+    function sendMessage() {
+      const content = input.value.trim();
+      if (!content) return;
+      
+      const data = {
+        sender_id: currentUserId,
+        receiver_id: parseInt(selectedRecipient),
+        content: content
+      };
+      
+      // Disable input temporarily to prevent double-sending
+      input.disabled = true;
+      
+      // Send via socket
+      socket.emit('send_message', data);
+      
+      // Clear input field
+      input.value = '';
+      input.disabled = false;
+      input.focus();
+    }
+    
+    // Load conversation history from API
+    function loadConversation(userId) {
+      statusDisplay.textContent = 'Loading conversation...';
+      
+      fetch(`/api/conversations/${userId}`)
+        .then(response => response.json())
+        .then(messages => {
+          chat.innerHTML = ''; // Clear existing messages
+          
+          if (messages.length === 0) {
+            statusDisplay.textContent = 'No messages yet. Send one to start the conversation!';
+          } else {
+            statusDisplay.textContent = `Showing ${messages.length} messages`;
             
-            <div class="contacts-list" id="contactsList">
-                No contacts yet
-            </div>
-        </div>
-
-        <!-- Main Chat Area -->
-        <div class="chat-main">
-            <div class="chat-header">
-                <span class="chat-header-text">Select a contact to start messaging</span>
-            </div>
+            // Display all messages
+            messages.forEach(msg => {
+              appendMessage(
+                msg.is_sender ? 'you' : 'them',
+                msg.content,
+                msg.sender_name,
+                msg.timestamp
+              );
+            });
             
-            <div class="chat-messages" id="chatMessages">
-                <div class="empty-chat" id="emptyChat">Welcome to your chat interface</div>
-            </div>
-            
-            <div class="chat-input-container">
-                <input type="text" class="chat-input" placeholder="Select a contact first..." id="chatInput" disabled>
-                <button class="send-button" id="sendButton" disabled>➤</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Empty contacts array - ready for you to add data
-        const contacts = [];
-
-        let currentContact = null;
-
-        // DOM elements
-        const contactsList = document.getElementById('contactsList');
-        const chatMessages = document.getElementById('chatMessages');
-        const emptyChat = document.getElementById('emptyChat');
-        const chatInput = document.getElementById('chatInput');
-        const sendButton = document.getElementById('sendButton');
-        const searchBox = document.getElementById('searchBox');
-
-        // Initialize app
-        function init() {
-            renderContacts();
-            setupEventListeners();
-        }
-
-        // Render contacts list
-        function renderContacts(filter = '') {
-            if (contacts.length === 0) {
-                contactsList.innerHTML = '<div style="text-align: center; padding: 20px; color: #6c757d;">No contacts yet</div>';
-                return;
-            }
-
-            const filteredContacts = contacts.filter(contact => 
-                contact.name.toLowerCase().includes(filter.toLowerCase())
-            );
-
-            if (filteredContacts.length === 0) {
-                contactsList.innerHTML = '<div style="text-align: center; padding: 20px; color: #6c757d;">No contacts found</div>';
-                return;
-            }
-
-            contactsList.innerHTML = '';
-            filteredContacts.forEach(contact => {
-                const contactElement = document.createElement('div');
-                contactElement.className = 'contact-item';
-                contactElement.dataset.contactId = contact.id;
-                
-                contactElement.innerHTML = `
-                    <div class="contact-avatar">${contact.avatar}</div>
-                    <div class="contact-info">
-                        <div class="contact-name">${contact.name}${contact.online ? '<span class="online-indicator"></span>' : ''}</div>
-                        <div class="contact-preview">${contact.lastMessage}</div>
-                    </div>
-                    <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                        <div class="contact-time">${contact.time}</div>
-                        ${contact.unread > 0 ? `<div class="unread-count">${contact.unread}</div>` : ''}
-                    </div>
-                `;
-                
-                contactElement.addEventListener('click', () => selectContact(contact.id));
-                contactsList.appendChild(contactElement);
-            });
-        }
-
-        // Select a contact (for future use)
-        function selectContact(contactId) {
-            // This function is ready for when you add contacts
-            console.log('Selected contact:', contactId);
-        }
-
-        // Setup event listeners
-        function setupEventListeners() {
-            // Search functionality
-            searchBox.addEventListener('input', (e) => {
-                renderContacts(e.target.value);
-            });
-
-            // Send button (disabled by default)
-            sendButton.addEventListener('click', () => {
-                console.log('Send button clicked - add your messaging logic here');
-            });
-
-            // Enter key (disabled by default)  
-            chatInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    console.log('Enter pressed - add your messaging logic here');
-                }
-            });
-        }
-
-        // Initialize the app
-        init();
-    </script>
+            // Scroll to bottom
+            chat.scrollTop = chat.scrollHeight;
+          }
+        })
+        .catch(error => {
+          console.error('Error loading conversation:', error);
+          statusDisplay.textContent = 'Error loading conversation. Please refresh.';
+          statusDisplay.style.color = '#f44336';
+        });
+    }
+    
+    // Handle incoming messages
+    socket.on('new_message', msg => {
+      console.log('Received message:', msg);
+      
+      // If the message is from the currently selected user
+      if (msg.sender_id == selectedRecipient) {
+        appendMessage('them', msg.content, 'They', msg.timestamp);
+      } else {
+        // Notify about message from other user
+        statusDisplay.textContent = `New message from user ID: ${msg.sender_id}`;
+        statusDisplay.style.color = '#ff9800';
+      }
+    });
+    
+    // Handle sent message confirmation
+    socket.on('message_sent', msg => {
+      console.log('Message sent confirmation:', msg);
+      
+      // If this is for the currently selected conversation
+      if (msg.receiver_id == selectedRecipient) {
+        appendMessage('you', msg.content, 'You', msg.timestamp);
+      }
+    });
+    
+    function appendMessage(who, text, name, timestamp) {
+      const div = document.createElement("div");
+      div.className = `message ${who}`;
+      
+      // Format timestamp
+      const formattedTime = new Date(timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      
+      div.innerHTML = `
+        <div class="icon">${name.substring(0, 1)}</div>
+        <div class="text">
+          ${text}
+          <div style="font-size: 11px; color: #888; text-align: right; margin-top: 5px;">
+            ${formattedTime}
+          </div>
+        </div>`;
+      
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+  </script>
 </body>
 </html>

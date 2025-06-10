@@ -128,7 +128,10 @@ def logout():
 @app.route('/')
 @login_required
 def home():
-    return render_template("home.html")
+    # grab the latest 4 products
+    featured_items = Product.query.order_by(Product.id.desc()).limit(4).all()
+    return render_template("home.html", featured_items=featured_items)
+
 
 @app.route("/products")
 @login_required
@@ -139,6 +142,30 @@ def products():
     else:
         products = Product.query.all()
     return render_template("products.html", products=products, search=search)
+    # grab search **and** category query-params
+    search   = request.args.get("q",       None)
+    category = request.args.get("category", None)
+
+    # start building the base query
+    qry = Product.query
+
+    # filter by category if provided
+    if category:
+        qry = qry.filter_by(category=category)
+
+    # filter by name search if provided
+    if search:
+        qry = qry.filter(Product.name.ilike(f"%{search}%"))
+
+    # finally, order & execute
+    products = qry.order_by(Product.id.desc()).all()
+
+    return render_template(
+        "products.html",
+        products=products,
+        search=search,
+        active_category=category
+    )
 
 @app.route("/upload", methods=["GET", "POST"])
 @login_required

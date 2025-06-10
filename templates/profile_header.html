@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThriftIt - Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header matching the header.html structure -->
+    <header class="site-header">
+        <div class="container">
+            <!-- Logo -->
+            <a href="{{ url_for('home') }}" class="logo">
+                <img src="{{ url_for('static', filename='thriftit.png') }}" alt="ThriftIt" />
+            </a>
+            
+            <!-- User actions -->
+            <div class="user-actions">
+                <a href="{{ url_for('send_message') }}">Chat</a>
+                <a href="{{ url_for('wishlist') }}">Wishlist</a>
+                <a href="{{ url_for('upload') }}" class="btn-sell">Sell</a>
+                <div class="user-menu" onclick="toggleMenu()">
+                    <img src="{{ url_for('static', filename='Profile pic.webp') }}" alt="Profile" class="profile-pic">
+                    <span>ETHAN NG YANQI</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                
+                <!-- Dropdown menu -->
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <div class="dropdown-header">
+                        <img src="{{ url_for('static', filename='Profile pic.webp') }}" alt="Profile">
+                        <div class="user-info">
+                            <h3>ETHAN NG YANQI</h3>
+                            <p>View Profile</p>
+                        </div>
+                    </div>
+                    
+                    <div class="dropdown-divider"></div>
+                    
+                    <a href="{{ url_for('products') }}" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                    
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-edit"></i>
+                        <span>Edit Profile</span>
+                    </a>
+                    
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings & Privacy</span>
+                    </a>
+                    
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Help & Support</span>
+                    </a>
+                    
+                    <div class="dropdown-divider"></div>
+                    
+                    <a href="{{ url_for('logout') }}" class="dropdown-item logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Log Out</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+
+    <script>
+        function toggleMenu() {
+            const dropdown = document.getElementById('dropdownMenu');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.querySelector('.user-menu');
+            const dropdown = document.getElementById('dropdownMenu');
+            
+            if (!userMenu.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>
+
+<style>
+/* Basic reset */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+/* Header styles matching header.html */
+.site-header {
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    position: relative;
+    z-index: 1000;
+}
+
+.site-header .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+/* Logo */
+.site-header .logo img {
+    height: 32px;
+}
+
+/* User actions */
+.site-header .user-actions {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin-left: auto;
+}
+
+.site-header .user-actions a {
+    color: #333;
+    text-decoration: none;
+    margin: 0 8px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s ease;
+}
+
+.site-header .user-actions a:hover {
+    color: #000;
+}
+
+/* User menu with profile pic */
+.site-header .user-menu {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 20px;
+    transition: background-color 0.2s ease;
+    margin-left: 12px;
+    order: 2;
+}
+
+.site-header .user-menu:hover {
+    background-color: #f5f5f5;
+}
+
+.site-header .user-menu .profile-pic {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    margin-right: 8px;
+    object-fit: cover;
+}
+
+.site-header .user-menu span {
+    font-size: 14px;
+    font-weight: 500;
+    margin-right: 6px;
+}
+
+.site-header .user-menu i {
+    font-size: 12px;
+    transition: transform 0.2s ease;
+}
+
+.site-header .user-menu.active i {
+    transform: rotate(180deg);
+}
+
+/* Sell button */
+.site-header .btn-sell {
+    background: #ff3e3e;
+    color: #fff !important;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+    order: 1;
+}
+
+.site-header .btn-sell:hover {
+    opacity: 0.9;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    min-width: 280px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    margin-top: 8px;
+}
+
+.dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.dropdown-header img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin-right: 12px;
+    object-fit: cover;
+}
+
+.dropdown-header .user-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.dropdown-header .user-info p {
+    font-size: 14px;
+    color: #666;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: #f0f0f0;
+    margin: 8px 0;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    color: #333;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+.dropdown-item i {
+    width: 20px;
+    margin-right: 12px;
+    font-size: 16px;
+}
+
+.dropdown-item span {
+    font-size: 14px;
+}
+
+.dropdown-item.logout {
+    color: #dc3545;
+}
+
+.dropdown-item.logout:hover {
+    background-color: #fff5f5;
+}
+
+/* Main content */
+.main-content {
+    padding: 40px 0;
+}
+
+.main-content .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.main-content h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.main-content p {
+    font-size: 16px;
+    color: #666;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .site-header .container {
+        padding: 0 16px;
+    }
+    
+    .site-header .user-menu span {
+        display: none;
+    }
+    
+    .dropdown-menu {
+        right: 0;
+        min-width: 260px;
+    }
+    
+    .main-content .container {
+        padding: 0 16px;
+    }
+    
+    .main-content h1 {
+        font-size: 24px;
+    }
+}
+</style>

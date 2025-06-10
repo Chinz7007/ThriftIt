@@ -9,7 +9,7 @@
 </head>
 
 <body>
-    {% include 'header.html' %}
+    {% include 'profile_header.html' %}
 
     <!-- Hero Section -->
     <section class="hero">
@@ -28,89 +28,82 @@
     <!-- Categories Section -->
     <section class="categories">
         <h2>Browse Categories</h2>
-        <div class="category-grid">
-            <a href="/products?category=textbooks" class="category-card">
-                <i class="fas fa-book"></i>
-                <h3>Textbooks</h3>
-            </a>
-            <a href="/products?category=furniture" class="category-card">
-                <i class="fas fa-couch"></i>
-                <h3>Furniture</h3>
-            </a>
-            <a href="/products?category=electronics" class="category-card">
-                <i class="fas fa-laptop"></i>
-                <h3>Electronics</h3>
-            </a>
-            <a href="/products?category=clothing" class="category-card">
-                <i class="fas fa-tshirt"></i>
-                <h3>Clothing</h3>
-            </a>
-            <a href="/products?category=kitchen" class="category-card">
-                <i class="fas fa-utensils"></i>
-                <h3>Kitchen</h3>
-            </a>
-            <a href="/products?category=stationery" class="category-card">
-                <i class="fas fa-pencil-alt"></i>
-                <h3>Stationery</h3>
-            </a>
-        </div>
+       <div class="category-grid">
+    <a
+      href="{{ url_for('products', category='textbooks', q=search) }}"
+      class="category-card{% if active_category=='textbooks' %} is-active{% endif %}"
+    >
+        <i class="fas fa-book"></i>
+        <h3>Textbooks</h3>
+    </a>
+
+    <a
+      href="{{ url_for('products', category='furniture', q=search) }}"
+      class="category-card{% if active_category=='furniture' %} is-active{% endif %}"
+    >
+        <i class="fas fa-couch"></i>
+        <h3>Furniture</h3>
+    </a>
+
+    <a
+      href="{{ url_for('products', category='electronics', q=search) }}"
+      class="category-card{% if active_category=='electronics' %} is-active{% endif %}"
+    >
+        <i class="fas fa-laptop"></i>
+        <h3>Electronics</h3>
+    </a>
+
+     <a
+      href="{{ url_for('products', category='clothing', q=search) }}"
+      class="category-card{% if active_category=='clothing' %} is-active{% endif %}"
+    >
+        <i class="fas fa-tshirt"></i>
+        <h3>Clothing</h3>
+    </a>
+
+     <a
+      href="{{ url_for('products', category='kitchen', q=search) }}"
+      class="category-card{% if active_category=='kitchen' %} is-active{% endif %}"
+    >
+        <i class="fas fa-utensils"></i>
+        <h3>Kitchen</h3>
+    </a>
+
+     <a
+      href="{{ url_for('products', category='stationery', q=search) }}"
+      class="category-card{% if active_category=='stationery' %} is-active{% endif %}"
+    >
+        <i class="fas fa-pencil-alt"></i>
+        <h3>Stationery</h3>
+    </a>
+
+</div>
+
     </section>
 
     <!-- Featured Items Section -->
     <section class="featured-items">
         <h2>Featured Items</h2>
         <div class="item-grid">
-            <!-- Item 1 -->
-            <div class="item-card">
+            <div class="item-grid-flex">
+            {% for item in featured_items %}
+            <a href="{{ url_for('product_detail', product_id=item.id) }}" class="item-card">
                 <div class="item-image">
-                    <img src="/api/placeholder/250/200" alt="Calculus Textbook">
+                    <img src="{{ url_for('uploads', filename=item.image) }}" alt="{{ item.name }}">
                 </div>
                 <div class="item-details">
-                    <div class="item-title">Calculus Early Transcendentals</div>
-                    <div class="item-price">$40</div>
-                    <div class="item-seller">Posted by Alex S.</div>
-                    <div class="item-location"><i class="fas fa-map-marker-alt"></i> Central Campus</div>
+                    <div class="item-title">{{ item.name }}</div>
+                    <div class="item-price">RM{{ "%.2f"|format(item.price) }}</div>
+                    <div class="item-seller">Posted by {{ current_user.student_id }}</div>
+                    <div class="item-location">
+                        <i class="fas fa-tag"></i> {{ item.category }}
+                    </div>
                 </div>
-            </div>
-            
-            <!-- Item 2 -->
-            <div class="item-card">
-                <div class="item-image">
-                    <img src="/api/placeholder/250/200" alt="Desk Lamp">
-                </div>
-                <div class="item-details">
-                    <div class="item-title">Adjustable Desk Lamp</div>
-                    <div class="item-price">$15</div>
-                    <div class="item-seller">Posted by Jamie L.</div>
-                    <div class="item-location"><i class="fas fa-map-marker-alt"></i> North Dorms</div>
-                </div>
-            </div>
-            
-            <!-- Item 3 -->
-            <div class="item-card">
-                <div class="item-image">
-                    <img src="/api/placeholder/250/200" alt="Coffee Maker">
-                </div>
-                <div class="item-details">
-                    <div class="item-title">Coffee Maker (Like New)</div>
-                    <div class="item-price">$25</div>
-                    <div class="item-seller">Posted by Taylor J.</div>
-                    <div class="item-location"><i class="fas fa-map-marker-alt"></i> West Apartments</div>
-                </div>
-            </div>
-            
-            <!-- Item 4 -->
-            <div class="item-card">
-                <div class="item-image">
-                    <img src="/api/placeholder/250/200" alt="Bluetooth Speaker">
-                </div>
-                <div class="item-details">
-                    <div class="item-title">Portable Bluetooth Speaker</div>
-                    <div class="item-price">$20</div>
-                    <div class="item-seller">Posted by Morgan R.</div>
-                    <div class="item-location"><i class="fas fa-map-marker-alt"></i> South Campus</div>
-                </div>
-            </div>
+            </a>
+            {% else %}
+            <p>No items found.</p>
+            {% endfor %}
+       </div>
         </div>
         
         <div style="text-align: center; margin-top: 2rem;">
