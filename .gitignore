@@ -13,12 +13,7 @@ ENV/
 env/
 .venv/
 
-# Flask instance folder
-instance/
 
-# SQLite database files
-*.sqlite3
-*.db
 
 # Pytest cache
 .pytest_cache/
