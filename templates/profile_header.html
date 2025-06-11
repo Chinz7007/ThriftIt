@@ -9,9 +9,12 @@
     <!-- Header matching the header.html structure -->
     <header class="site-header">
         <div class="container">
-            <!-- Logo -->
+            <!-- Logo - Updated to be more visible -->
             <a href="{{ url_for('home') }}" class="logo">
-                <img src="{{ url_for('static', filename='thriftit.png') }}" alt="ThriftIt" />
+                <div class="logo-container">
+                    <i class="fas fa-shopping-cart logo-icon"></i>
+                    <span class="logo-text">ThriftIt</span>
+                </div>
             </a>
             
             <!-- User actions -->
@@ -20,29 +23,29 @@
                 <a href="{{ url_for('wishlist') }}">Wishlist</a>
                 <a href="{{ url_for('upload') }}" class="btn-sell">Sell</a>
                 <div class="user-menu" onclick="toggleMenu()">
-                    <img src="{{ url_for('static', filename='Profile pic.webp') }}" alt="Profile" class="profile-pic">
-                    <span>ETHAN NG YANQI</span>
+                    <img src="{{ url_for('uploads', filename=current_user.get_profile_picture()) }}" alt="Profile" class="profile-pic">
+                    <span>{{ current_user.get_display_name() }}</span>
                     <i class="fas fa-chevron-down"></i>
                 </div>
                 
                 <!-- Dropdown menu -->
                 <div class="dropdown-menu" id="dropdownMenu">
                     <div class="dropdown-header">
-                        <img src="{{ url_for('static', filename='Profile pic.webp') }}" alt="Profile">
+                        <img src="{{ url_for('uploads', filename=current_user.get_profile_picture()) }}" alt="Profile">
                         <div class="user-info">
-                            <h3>ETHAN NG YANQI</h3>
-                            <p>View Profile</p>
+                            <h3>{{ current_user.get_display_name() }}</h3>
+                            <p>{{ current_user.student_id }}</p>
                         </div>
                     </div>
                     
                     <div class="dropdown-divider"></div>
                     
-                    <a href="{{ url_for('products') }}" class="dropdown-item">
+                    <a href="{{ url_for('profile') }}" class="dropdown-item">
                         <i class="fas fa-user"></i>
                         <span>Profile</span>
                     </a>
                     
-                    <a href="#" class="dropdown-item">
+                    <a href="{{ url_for('edit_profile') }}" class="dropdown-item">
                         <i class="fas fa-edit"></i>
                         <span>Edit Profile</span>
                     </a>
@@ -113,16 +116,49 @@ body {
 .site-header .container {
     max-width: 1200px;
     margin: 0 auto;
-    height: 60px;
+    height: 70px; /* Increased height for bigger logo */
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 20px;
 }
 
-/* Logo */
-.site-header .logo img {
-    height: 32px;
+/* Updated Logo Styles - Much More Visible */
+.site-header .logo {
+    text-decoration: none;
+    color: #333;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    font-size: 32px; /* Big, visible icon */
+    color: #ff3e3e;
+    background: linear-gradient(45deg, #ff3e3e, #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.logo-text {
+    font-size: 28px; /* Large, visible text */
+    font-weight: 700;
+    color: #333;
+    letter-spacing: -0.5px;
+}
+
+.site-header .logo:hover .logo-icon {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+.site-header .logo:hover .logo-text {
+    color: #ff3e3e;
+    transition: color 0.2s ease;
 }
 
 /* User actions */
@@ -288,33 +324,19 @@ body {
     background-color: #fff5f5;
 }
 
-/* Main content */
-.main-content {
-    padding: 40px 0;
-}
-
-.main-content .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-.main-content h1 {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 8px;
-    color: #333;
-}
-
-.main-content p {
-    font-size: 16px;
-    color: #666;
-}
-
 /* Responsive design */
 @media (max-width: 768px) {
     .site-header .container {
         padding: 0 16px;
+        height: 60px;
+    }
+    
+    .logo-icon {
+        font-size: 24px;
+    }
+    
+    .logo-text {
+        font-size: 20px;
     }
     
     .site-header .user-menu span {
@@ -324,14 +346,6 @@ body {
     .dropdown-menu {
         right: 0;
         min-width: 260px;
-    }
-    
-    .main-content .container {
-        padding: 0 16px;
-    }
-    
-    .main-content h1 {
-        font-size: 24px;
     }
 }
 </style>

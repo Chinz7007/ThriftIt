@@ -57,6 +57,11 @@
             margin-right: 10px;
         }
         
+        .button.disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
         .back-link {
             display: inline-block;
             margin-top: 20px;
@@ -189,14 +194,18 @@
             <div class="price"><strong>Price:</strong> RM{{ "%.2f"|format(product.price) }}</div>
             
             <div class="buttons">
-                <a href="{{ url_for('send_message', user_id=product.id) }}" class="button">Chat</a>
+                {% if product.seller_id == current_user.id %}
+                    <span class="button disabled">Your Product</span>
+                {% else %}
+                    <a href="{{ url_for('chat_with_seller', product_id=product.id) }}" class="button">Chat with Seller</a>
+                {% endif %}
             </div>
             
             <div class="details">
                 <h2>Details</h2>
                 <div class="detail-item"><strong>Condition:</strong> {{ product.condition }}</div>
                 <div class="detail-item"><strong>Description:</strong> {{ product.description }}</div>
-                <div class="detail-item"><strong>Contact:</strong> {{ product.contact_info }}</div>
+                <div class="detail-item"><strong>Seller:</strong> {{ product.seller.student_id }}</div>
             </div>
             
             <a class="back-link" href="{{ url_for('products') }}">← Back to Products</a>

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - ThriftIt</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .edit-profile-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .profile-picture-upload {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .current-picture {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 3px solid #f0f0f0;
+        }
+        .upload-btn {
+            background: #007bff;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        #fileInput {
+            display: none;
+        }
+        
+        /* Password Change Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 450px;
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .modal-header h2 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .modal-header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            color: #aaa;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .close:hover {
+            color: #000;
+        }
+        
+        .password-form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .password-form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .password-input-container {
+            position: relative;
+        }
+        
+        .password-form-group input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s ease;
+            box-sizing: border-box;
+        }
+        
+        .password-form-group input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+            font-size: 16px;
+            user-select: none;
+        }
+        
+        .password-toggle:hover {
+            color: #007bff;
+        }
+        
+        .password-requirements {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .password-requirements h4 {
+            margin: 0 0 10px 0;
+            color: #007bff;
+        }
+        
+        .password-requirements ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+        
+        .btn-modal {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-modal-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-modal-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-modal-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-modal-secondary:hover {
+            background: #545b62;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 600;
+            z-index: 1100;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: #28a745;
+        }
+        
+        .notification.error {
+            background: #dc3545;
+        }
+        
+        .loading {
+            display: none;
+            margin-left: 10px;
+        }
+        
+        .loading i {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    {% include 'profile_header.html' %}
+    
+    <div class="edit-profile-container">
+        <h1 style="text-align: center; margin-bottom: 30px;">Edit Profile</h1>
+        
+        <form method="POST" enctype="multipart/form-data">
+            <div class="profile-picture-upload">
+                <img src="{{ url_for('uploads', filename=current_user.get_profile_picture()) }}" 
+                     alt="Current Profile Picture" class="current-picture" id="currentPicture">
+                <br>
+                <button type="button" class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-camera"></i> Change Profile Picture
+                </button>
+                <input type="file" name="profile_picture" id="fileInput" accept="image/*" onchange="previewImage()">
+            </div>
+            
+            <div class="form-group">
+                <label for="full_name">Full Name</label>
+                <input type="text" name="full_name" id="full_name" 
+                       value="{{ current_user.full_name or '' }}" 
+                       placeholder="Enter your full name">
+            </div>
+            
+            <div class="form-group">
+                <label for="student_id">Student ID</label>
+                <input type="text" id="student_id" value="{{ current_user.student_id }}" readonly style="background: #f8f9fa;">
+                <small style="color: #666;">Student ID cannot be changed</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="student_email">Email</label>
+                <input type="email" id="student_email" value="{{ current_user.student_email }}" readonly style="background: #f8f9fa;">
+                <small style="color: #666;">Email cannot be changed</small>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <a href="{{ url_for('profile') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+        
+        <hr style="margin: 30px 0;">
+        
+        <div style="text-align: center;">
+            <h3 style="color: #dc3545; margin-bottom: 15px;">Danger Zone</h3>
+            <p style="color: #666; margin-bottom: 15px;">Be careful with these actions</p>
+            <button class="btn btn-danger" onclick="openPasswordModal()">
+                <i class="fas fa-key"></i> Change Password
+            </button>
+        </div>
+    </div>
+
+    <!-- Password Change Modal -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePasswordModal()">&times;</span>
+            <div class="modal-header">
+                <h2><i class="fas fa-key"></i> Change Password</h2>
+                <p>Enter your current password and choose a new secure password</p>
+            </div>
+            
+            <form id="passwordForm">
+                <div class="password-form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="currentPassword" name="current_password" required>
+                        <span class="password-toggle" onclick="togglePassword('currentPassword')">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="password-form-group">
+                    <label for="newPassword">New Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="newPassword" name="new_password" required>
+                        <span class="password-toggle" onclick="togglePassword('newPassword')">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="password-form-group">
+                    <label for="confirmPassword">Confirm New Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="confirmPassword" name="confirm_password" required>
+                        <span class="password-toggle" onclick="togglePassword('confirmPassword')">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="password-requirements">
+                    <h4>Password Requirements:</h4>
+                    <ul>
+                        <li>At least 6 characters long</li>
+                        <li>Different from your current password</li>
+                        <li>Recommended: Mix of letters, numbers, and symbols</li>
+                    </ul>
+                </div>
+                
+                <div class="modal-buttons">
+                    <button type="button" class="btn-modal btn-modal-secondary" onclick="closePasswordModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn-modal btn-modal-primary" id="changePasswordBtn">
+                        <i class="fas fa-key"></i> Change Password
+                        <span class="loading" id="passwordLoading">
+                            <i class="fas fa-spinner"></i>
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        function previewImage() {
+            const fileInput = document.getElementById('fileInput');
+            const currentPicture = document.getElementById('currentPicture');
+            
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentPicture.src = e.target.result;
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        }
+        
+        function openPasswordModal() {
+            document.getElementById('passwordModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closePasswordModal() {
+            document.getElementById('passwordModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            document.getElementById('passwordForm').reset();
+        }
+        
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = input.nextElementSibling.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('passwordModal');
+            if (event.target === modal) {
+                closePasswordModal();
+            }
+        }
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closePasswordModal();
+            }
+        });
+        
+        // Handle password change form submission
+        document.getElementById('passwordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const changeBtn = document.getElementById('changePasswordBtn');
+            const loading = document.getElementById('passwordLoading');
+            
+            // Basic validation
+            if (newPassword.length < 6) {
+                showNotification('New password must be at least 6 characters long.', 'error');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showNotification('New passwords do not match.', 'error');
+                return;
+            }
+            
+            // Show loading state
+            changeBtn.disabled = true;
+            loading.style.display = 'inline';
+            
+            // Send request to server
+            fetch('/api/change_password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    current_password: currentPassword,
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    closePasswordModal();
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error changing password. Please try again.', 'error');
+            })
+            .finally(() => {
+                // Hide loading state
+                changeBtn.disabled = false;
+                loading.style.display = 'none';
+            });
+        });
+        
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
