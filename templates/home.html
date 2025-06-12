@@ -25,59 +25,31 @@
         </div>
     </section>
 
-    <!-- Categories Section -->
-    <section class="categories">
-        <h2>Browse Categories</h2>
-       <div class="category-grid">
-    <a
-      href="{{ url_for('products', category='textbooks', q=search) }}"
-      class="category-card{% if active_category=='textbooks' %} is-active{% endif %}"
-    >
-        <i class="fas fa-book"></i>
-        <h3>Textbooks</h3>
-    </a>
+<!-- Categories Section -->
+<section class="categories">
+    <h2>Browse Categories</h2>
+    <div class="category-grid">
+        <a href="{{ url_for('products', category='Books') }}" class="category-card">
+            <i class="fas fa-book"></i>
+            <h3>Books</h3>
+        </a>
 
-    <a
-      href="{{ url_for('products', category='furniture', q=search) }}"
-      class="category-card{% if active_category=='furniture' %} is-active{% endif %}"
-    >
-        <i class="fas fa-couch"></i>
-        <h3>Furniture</h3>
-    </a>
+        <a href="{{ url_for('products', category='Tech') }}" class="category-card">
+            <i class="fas fa-laptop"></i>
+            <h3>Tech</h3>
+        </a>
 
-    <a
-      href="{{ url_for('products', category='electronics', q=search) }}"
-      class="category-card{% if active_category=='electronics' %} is-active{% endif %}"
-    >
-        <i class="fas fa-laptop"></i>
-        <h3>Electronics</h3>
-    </a>
+        <a href="{{ url_for('products', category='Clothes') }}" class="category-card">
+            <i class="fas fa-tshirt"></i>
+            <h3>Clothes</h3>
+        </a>
 
-     <a
-      href="{{ url_for('products', category='clothing', q=search) }}"
-      class="category-card{% if active_category=='clothing' %} is-active{% endif %}"
-    >
-        <i class="fas fa-tshirt"></i>
-        <h3>Clothing</h3>
-    </a>
-
-     <a
-      href="{{ url_for('products', category='kitchen', q=search) }}"
-      class="category-card{% if active_category=='kitchen' %} is-active{% endif %}"
-    >
-        <i class="fas fa-utensils"></i>
-        <h3>Kitchen</h3>
-    </a>
-
-     <a
-      href="{{ url_for('products', category='stationery', q=search) }}"
-      class="category-card{% if active_category=='stationery' %} is-active{% endif %}"
-    >
-        <i class="fas fa-pencil-alt"></i>
-        <h3>Stationery</h3>
-    </a>
-
-</div>
+        <a href="{{ url_for('products', category='Others') }}" class="category-card">
+            <i class="fas fa-box"></i>
+            <h3>Others</h3>
+        </a>
+    </div>
+</section>
 
     </section>
 
@@ -94,7 +66,7 @@
                 <div class="item-details">
                     <div class="item-title">{{ item.name }}</div>
                     <div class="item-price">RM{{ "%.2f"|format(item.price) }}</div>
-                    <div class="item-seller">Posted by {{ current_user.student_id }}</div>
+                    <div class="item-seller">Posted by {{ item.seller.student_id }}</div>
                     <div class="item-location">
                         <i class="fas fa-tag"></i> {{ item.category }}
                     </div>

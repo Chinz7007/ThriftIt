@@ -43,12 +43,20 @@ class Product(db.Model):
     category       = db.Column(db.String(50), nullable=False)
     condition      = db.Column(db.String(50), nullable=False)
     multiple_items = db.Column(db.Boolean, default=False)
+    seller_id      = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    # Relationship to User (seller)
+    seller = db.relationship('User', backref=db.backref('products', lazy=True))
+
+# Add this field to your User model in app.py
 
 class User(db.Model, UserMixin):
     id            = db.Column(db.Integer, primary_key=True)
     student_id    = db.Column(db.String(50), unique=True, nullable=False)
     student_email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
+    full_name     = db.Column(db.String(100), nullable=True)  # New field for full name
+    profile_picture = db.Column(db.String(100), nullable=True, default='default-avatar.png')  # New field
     messages_sent     = db.relationship('Message', foreign_keys='Message.sender_id', backref='sender', lazy='dynamic')
     messages_received = db.relationship('Message', foreign_keys='Message.receiver_id', backref='receiver', lazy='dynamic')
 
@@ -57,6 +65,14 @@ class User(db.Model, UserMixin):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+    
+    def get_profile_picture(self):
+        """Return the profile picture filename or default"""
+        return self.profile_picture if self.profile_picture else 'default-avatar.png'
+    
+    def get_display_name(self):
+        """Return full name if available, otherwise student ID"""
+        return self.full_name if self.full_name else self.student_id
 
 class Message(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
@@ -136,12 +152,6 @@ def home():
 @app.route("/products")
 @login_required
 def products():
-    search = request.args.get("q")
-    if search:
-        products = Product.query.filter(Product.name.ilike(f"%{search}%")).all()
-    else:
-        products = Product.query.all()
-    return render_template("products.html", products=products, search=search)
     # grab search **and** category query-params
     search   = request.args.get("q",       None)
     category = request.args.get("category", None)
@@ -188,7 +198,8 @@ def upload():
                 description=description,
                 category=category,
                 condition=condition,
-                multiple_items=multiple
+                multiple_items=multiple,
+                seller_id=current_user.id  # Track who posted the product
             )
             db.session.add(new_product)
             db.session.commit()
@@ -207,7 +218,27 @@ def uploads(filename):
 def product_detail(product_id):
     product = Product.query.get_or_404(product_id)
     recent_products = Product.query.order_by(Product.id.desc()).limit(10).all()
-    return render_template("product_detail.html", product=product, recent_products=recent_products)
+    
+    # Check if current user is the seller
+    is_own_product = (product.seller_id == current_user.id)
+    
+    return render_template("product_detail.html", 
+                         product=product, 
+                         recent_products=recent_products,
+                         is_own_product=is_own_product)
+
+@app.route("/chat_with_seller/<int:product_id>")
+@login_required
+def chat_with_seller(product_id):
+    product = Product.query.get_or_404(product_id)
+    
+    # Check if user is trying to chat with themselves
+    if product.seller_id == current_user.id:
+        flash("You cannot chat with yourself about your own product!", "warning")
+        return redirect(url_for('product_detail', product_id=product_id))
+    
+    # Redirect to chat with the seller
+    return redirect(url_for('chat', user_id=product.seller_id))
 
 @app.route("/send_message", methods=["GET"])
 @login_required
@@ -359,6 +390,131 @@ def check_wishlist_status(product_id):
     ).first() is not None
     
     return jsonify({'in_wishlist': exists})
+
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html')
+
+@app.route('/edit_profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    if request.method == 'POST':
+        # Handle full name update
+        full_name = request.form.get('full_name', '').strip()
+        if full_name:
+            current_user.full_name = full_name
+        
+        # Handle profile picture upload
+        if 'profile_picture' in request.files:
+            file = request.files['profile_picture']
+            if file and file.filename != '' and allowed_file(file.filename):
+                # Delete old profile picture if it's not the default
+                if current_user.profile_picture and current_user.profile_picture != 'default-avatar.png':
+                    old_file_path = os.path.join(app.config["UPLOAD_FOLDER"], current_user.profile_picture)
+                    if os.path.exists(old_file_path):
+                        os.remove(old_file_path)
+                
+                # Save new profile picture
+                filename = secure_filename(file.filename)
+                # Add timestamp to avoid conflicts
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+                filename = timestamp + filename
+                file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+                
+                # Update user's profile picture
+                current_user.profile_picture = filename
+            elif file and file.filename != '':
+                flash('Invalid file type. Please upload PNG, JPG, JPEG, or GIF files.', 'error')
+        
+        try:
+            db.session.commit()
+            flash('Profile updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error updating profile. Please try again.', 'error')
+        
+        return redirect(url_for('profile'))
+    
+    return render_template('edit_profile.html')
+
+@app.route('/api/upload_profile_picture', methods=['POST'])
+@login_required
+def upload_profile_picture():
+    """API endpoint for AJAX profile picture upload"""
+    try:
+        if 'profile_picture' not in request.files:
+            return jsonify({'success': False, 'message': 'No file provided'})
+        
+        file = request.files['profile_picture']
+        if file.filename == '':
+            return jsonify({'success': False, 'message': 'No file selected'})
+        
+        if file and allowed_file(file.filename):
+            # Delete old profile picture if it's not the default
+            if current_user.profile_picture and current_user.profile_picture != 'default-avatar.png':
+                old_file_path = os.path.join(app.config["UPLOAD_FOLDER"], current_user.profile_picture)
+                if os.path.exists(old_file_path):
+                    os.remove(old_file_path)
+            
+            # Save new profile picture
+            filename = secure_filename(file.filename)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+            filename = timestamp + filename
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            
+            # Update user's profile picture
+            current_user.profile_picture = filename
+            db.session.commit()
+            
+            return jsonify({
+                'success': True, 
+                'message': 'Profile picture updated successfully!',
+                'new_image_url': url_for('uploads', filename=filename)
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Invalid file type'})
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)})
+    
+@app.route('/api/change_password', methods=['POST'])
+@login_required
+def api_change_password():
+    """API endpoint for AJAX password change"""
+    try:
+        data = request.get_json()
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+        confirm_password = data.get('confirm_password')
+        
+        # Validate current password
+        if not current_user.check_password(current_password):
+            return jsonify({'success': False, 'message': 'Current password is incorrect.'})
+        
+        # Validate new password
+        if len(new_password) < 6:
+            return jsonify({'success': False, 'message': 'New password must be at least 6 characters long.'})
+        
+        # Check if new passwords match
+        if new_password != confirm_password:
+            return jsonify({'success': False, 'message': 'New passwords do not match.'})
+        
+        # Check if new password is different from current
+        if current_user.check_password(new_password):
+            return jsonify({'success': False, 'message': 'New password must be different from current password.'})
+        
+        # Update password
+        current_user.set_password(new_password)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Password changed successfully!'})
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': 'Error changing password. Please try again.'})
+
 
 #Message Feature
 @socketio.on('join')

@@ -1,82 +1,143 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-  margin: 0;
-  padding: 0;
-}
 
-.chat-container {
-  width: 500px;
-  height: 400px;
-  overflow-y: auto;
-  margin: 20px auto 0;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  padding: 20px;
-}
-
-.message {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 15px;
-}
-
-.message.user .text {
-  background: #eee;
-  color: black;
-  margin-left: 10px;
-}
-
-.message.bot {
-  flex-direction: row-reverse;
-}
-
-.message.bot .text {
-  background: #4CAF50;
-  color: white;
-  margin-right: 10px;
-}
-
-.icon {
-  background: #4CAF50;
-  color: white;
-  font-weight: bold;
-  border-radius: 50%;
-  padding: 10px;
-  width: 40px;
-  height: 40px;
-  text-align: center;
-  line-height: 20px;
-  font-size: 18px;
-}
-
-.text {
-  max-width: 70%;
-  padding: 10px 15px;
-  border-radius: 10px;
-}
-
-.input-area {
-  width: 500px;
-  margin: 0 auto;
-  display: flex;
-  padding: 10px 0;
-}
-
-.input-area input {
-  flex: 1;
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px 0 0 5px;
-}
-
-.input-area button {
-  background: #4CAF50;
-  border: none;
-  padding: 10px 20px;
-  color: white;
-  border-radius: 0 5px 5px 0;
-  cursor: pointer;
-}
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    
+    .chat-header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .chat-title {
+      display: flex;
+      align-items: center;
+    }
+    
+    .back-btn {
+      color: white;
+      text-decoration: none;
+      margin-right: 15px;
+      font-size: 24px;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #fff;
+      color: #4CAF50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      font-weight: bold;
+    }
+    
+    .chat-container {
+      flex-grow: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .message {
+      max-width: 70%;
+      padding: 10px 15px;
+      border-radius: 18px;
+      margin-bottom: 10px;
+      word-wrap: break-word;
+    }
+    
+    .message.sent {
+      align-self: flex-end;
+      background-color: #DCF8C6;
+    }
+    
+    .message.received {
+      align-self: flex-start;
+      background-color: white;
+    }
+    
+    .message-time {
+      font-size: 11px;
+      color: #888;
+      text-align: right;
+      margin-top: 5px;
+    }
+    
+    .input-area {
+      padding: 15px;
+      background-color: white;
+      display: flex;
+      border-top: 1px solid #eee;
+    }
+    
+    #messageInput {
+      flex-grow: 1;
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      margin-right: 10px;
+      outline: none;
+    }
+    
+    #sendBtn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    
+    .status-indicator {
+      padding: 5px 10px;
+      text-align: center;
+      color: #666;
+      font-style: italic;
+      font-size: 12px;
+    }
+    
+    .date-divider {
+      text-align: center;
+      color: #888;
+      margin: 15px 0;
+      position: relative;
+    }
+    
+    .date-divider::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background-color: #ddd;
+    }
+    
+    .date-divider::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background-color: #ddd;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #888;
+    }

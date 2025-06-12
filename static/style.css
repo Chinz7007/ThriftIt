@@ -64,9 +64,10 @@
 }
 
 .category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  display: flex;
+  justify-content: center;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .category-card {
@@ -76,6 +77,7 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: transform 0.2s;
+  min-width: 150px; /* Ensure consistent card width */
 }
 
 .category-card:hover {
