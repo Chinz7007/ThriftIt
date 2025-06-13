@@ -1,3 +1,9 @@
+# ============================================================================
+# EVENTLET MONKEY PATCH - MUST BE FIRST!
+# ============================================================================
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, join_room, emit, send
@@ -235,7 +241,7 @@ class User(db.Model, UserMixin):
     id            = db.Column(db.Integer, primary_key=True)
     student_id    = db.Column(db.String(50), unique=True, nullable=False)
     student_email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)  # Increased from 128 to 255
     full_name     = db.Column(db.String(100), nullable=True)
     profile_picture = db.Column(db.String(100), nullable=True, default='default-avatar.png')
     messages_sent     = db.relationship('Message', foreign_keys='Message.sender_id', backref='sender', lazy='dynamic')
