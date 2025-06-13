@@ -1,43 +1,53 @@
-# Byte-compiled / optimized files
+# Environment variables
+.env
+.venv
+venv
+
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Virtual Environment
-venv/
-ENV/
-.env/
-env/
-.venv/
+# Flask
+instance/
+.webassets-cache
 
+# Database
+*.db
+*.sqlite3
 
+# Uploads
+uploads/*
+!uploads/.gitkeep
 
-# Pytest cache
-.pytest_cache/
+# Logs
+logs/
+*.log
 
-# Coverage reports
-htmlcov/
-.coverage
-.coverage.*
-
-# IDE/editor settings
+# IDE
 .vscode/
 .idea/
-*.sublime-project
-*.sublime-workspace
-
-# Logs and temp files
-*.log
-tmp/
-*.tmp
 *.swp
-*.bak
+*.swo
+*~
 
-# macOS
+# OS
 .DS_Store
-
-# Windows
 Thumbs.db
