@@ -1066,18 +1066,34 @@ def too_large(error):
     return redirect(request.url)
 
 # ============================================================================
-# STARTUP LOGGING
+# STARTUP LOGGING - FIXED VERSION
 # ============================================================================
 
-# Log Socket.IO configuration on startup
 def log_socketio_config():
-    """Log Socket.IO configuration details"""
+    """Log Socket.IO configuration details with safe attribute access"""
     print("\n🔌 Socket.IO Configuration:")
     print(f"   Async Mode: {socketio.async_mode}")
     print(f"   Logger Enabled: {hasattr(socketio, 'logger')}")
-    print(f"   CORS Origins: {getattr(socketio.server, 'cors_allowed_origins', 'default')}")
-    print(f"   Engine.IO Version: {socketio.server.eio.version}")
-    print(f"   Socket.IO Version: {socketio.server.version}")
+    
+    # Safe access to server attributes
+    try:
+        cors_origins = getattr(socketio.server, 'cors_allowed_origins', 'unknown')
+        print(f"   CORS Origins: {cors_origins}")
+    except Exception:
+        print(f"   CORS Origins: configured")
+    
+    # Safe access to version info
+    try:
+        import engineio
+        print(f"   Engine.IO Version: {engineio.__version__}")
+    except Exception:
+        print(f"   Engine.IO Version: installed")
+    
+    try:
+        import socketio as sio_module
+        print(f"   Socket.IO Version: {sio_module.__version__}")
+    except Exception:
+        print(f"   Socket.IO Version: installed")
 
 # ============================================================================
 # INITIALIZATION AND STARTUP
@@ -1102,7 +1118,7 @@ with app.app_context():
         app.logger.error(f"✗ Database initialization error: {str(e)}")
         # Continue anyway - app might still work
 
-# Call this after socketio initialization
+# Call this after socketio initialization - FIXED VERSION
 log_socketio_config()
 
 # Validate security configuration on startup
