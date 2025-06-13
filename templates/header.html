@@ -1,13 +1,17 @@
-<header class="site-header">
-    <div class="container">
-      <!-- Logo -->
-      <a href="{{ url_for('home') }}" class="logo">ThriftIt</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ThriftIt</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style_header.css') }}">
+</head>
+<body>
 
-        <!-- replace with your logo image -->
-        <img src="{{ url_for('static', filename='thriftit.png') }}" alt="ThriftIt" />
-      </a>
-  
-      <!-- User actions-->
+  <header class="site-header">
+    <div class="container">
+      <a href="{{ url_for('home') }}" class="logo">ThriftIt</a>
+      <img src="{{ url_for('static', filename='thriftit.png') }}" alt="ThriftIt" />
+
       <div class="user-actions">
         <div class="user-menu">
           Hello, <i class="fas fa-chevron-down"></i>
@@ -19,93 +23,6 @@
       </div>
     </div>
   </header>
-<style>
-  /* basic reset */
-  .site-header, .site-header * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-  
-  /* wrapper */
-  .site-header {
-    background: #fff;
-    border-bottom: 1px solid #e0e0e0;
-    font-family: sans-serif;
-  }
-  .site-header .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-  }
-  
-  /* logo */
-  .site-header .logo img {
-    height: 32px;
-  }
-  
-  /* nav links */
-  .site-header .main-nav {
-    display: flex;
-    align-items: center;
-  }
-  .site-header .main-nav a {
-    color: #333;
-    text-decoration: none;
-    font-weight: 500;
-    margin: 0 12px;
-    font-size: 14px;
-  }
-  .site-header .main-nav a:hover {
-    color: #000;
-  }
-  
-  /* special “All Categories” */
-  .site-header .main-nav .all-cats {
-    display: flex;
-    align-items: center;
-  }
-  .site-header .main-nav .all-cats i {
-    margin-right: 6px;
-  }
-  
-  /* user actions */
-  .site-header .user-actions {
-    display: flex;
-    align-items: center;
-  }
-  .site-header .user-actions a,
-  .site-header .user-actions .user-menu {
-    color: #333;
-    text-decoration: none;
-    margin: 0 8px;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-  }
-  .site-header .user-actions .user-menu {
-    cursor: pointer;
-  }
-  .site-header .user-actions .user-menu i {
-    margin-left: 4px;
-  }
-  
-  /* Sell button */
-  .site-header .btn-sell {
-    background: #ff3e3e;
-    color: #fff;
-    text-decoration: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-weight: 600;
-    margin-left: 12px;
-  }
-  .site-header .btn-sell:hover {
-    opacity: 0.9;
-  }
-  
-</style>
+
+</body>
+</html>
