@@ -73,13 +73,34 @@ else:
 # Create the upload directory
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
-# SocketIO initialization - Production ready
+# ============================================================================
+# SOCKET.IO CONFIGURATION WITH ENHANCED DEBUGGING
+# ============================================================================
+
+# Enhanced SocketIO initialization with debugging
 if os.environ.get('FLASK_ENV') == 'production':
-    # Production CORS settings
-    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+    # Production configuration
+    socketio = SocketIO(
+        app, 
+        cors_allowed_origins="*",
+        async_mode='eventlet',
+        logger=True,
+        engineio_logger=True,
+        ping_timeout=60,
+        ping_interval=25
+    )
+    print("🔌 Socket.IO initialized for PRODUCTION with eventlet")
 else:
-    # Development settings
-    socketio = SocketIO(app, cors_allowed_origins="*")
+    # Development configuration
+    socketio = SocketIO(
+        app, 
+        cors_allowed_origins="*",
+        logger=True,
+        engineio_logger=True,
+        ping_timeout=60,
+        ping_interval=25
+    )
+    print("🔌 Socket.IO initialized for DEVELOPMENT")
 
 db = SQLAlchemy(app)
 
@@ -862,75 +883,167 @@ def api_change_password():
         return jsonify({'success': False, 'message': 'Error changing password. Please try again.'})
 
 # ============================================================================
-# SOCKET.IO MESSAGE FEATURE - ENHANCED WITH ERROR HANDLING
+# ENHANCED SOCKET.IO EVENT HANDLERS WITH DEBUGGING
 # ============================================================================
+
+@socketio.on('connect')
+def handle_connect():
+    """Handle client connection"""
+    print(f"🔗 Client connected: {request.sid}")
+    print(f"   User Agent: {request.headers.get('User-Agent', 'Unknown')}")
+    print(f"   Remote Address: {request.remote_addr}")
+    emit('connection_confirmed', {'status': 'connected', 'sid': request.sid})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    """Handle client disconnection"""
+    print(f"🔌 Client disconnected: {request.sid}")
+
+@socketio.on_error_default
+def default_error_handler(e):
+    """Handle Socket.IO errors"""
+    print(f"❌ Socket.IO error: {e}")
+    print(f"   Session ID: {request.sid}")
+    emit('error', {'message': 'A server error occurred'})
 
 @socketio.on('join')
 def handle_join(data):
-    """Client tells us who they are so we can put them in their personal room."""
+    """Enhanced join handler with debugging"""
     try:
         user_id = data.get('user_id')
-        if user_id:
-            room = f"user_{user_id}"
-            join_room(room)
-            app.logger.info(f"User {user_id} joined room {room}")
+        print(f"👥 Join request from session {request.sid}: user_id={user_id}")
+        
+        if not user_id:
+            print(f"   ❌ Invalid join request: missing user_id")
+            emit('error', {'message': 'Invalid join request'})
+            return
+        
+        room = f"user_{user_id}"
+        join_room(room)
+        print(f"   ✅ User {user_id} joined room {room}")
+        
+        # Send confirmation back to client
+        emit('joined', {'room': room, 'user_id': user_id})
+        
     except Exception as e:
-        app.logger.error(f"Socket join error: {str(e)}")
+        print(f"   ❌ Error in join handler: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        emit('error', {'message': 'Failed to join room'})
 
 @socketio.on('send_message')
 def handle_socket_message(data):
-    """
-    Data contains: sender_id, receiver_id, content.
-    Save to DB, then emit to the receiver's room.
-    """
+    """Enhanced message handler with comprehensive debugging"""
     try:
+        print(f"💬 Message received from session {request.sid}")
+        print(f"   Data: {data}")
+        
+        # Validate required fields
+        required_fields = ['sender_id', 'receiver_id', 'content']
+        for field in required_fields:
+            if field not in data:
+                print(f"   ❌ Missing required field: {field}")
+                emit('error', {'message': f'Missing required field: {field}'})
+                return
+        
         sender_id = int(data['sender_id'])
         receiver_id = int(data['receiver_id'])
         content = data['content']
-
-        # Basic validation
+        
+        print(f"   Sender: {sender_id}, Receiver: {receiver_id}")
+        print(f"   Content: {content[:50]}{'...' if len(content) > 50 else ''}")
+        
+        # Validate content
         if not content or not content.strip():
+            print(f"   ❌ Empty message content")
             emit('error', {'message': 'Message content cannot be empty'})
             return
             
-        if len(content) > 1000:  # Limit message length
-            emit('error', {'message': 'Message too long'})
+        if len(content) > 1000:
+            print(f"   ❌ Message too long: {len(content)} characters")
+            emit('error', {'message': 'Message too long (max 1000 characters)'})
             return
             
         if sender_id == receiver_id:
+            print(f"   ❌ User trying to message themselves")
             emit('error', {'message': 'Cannot send message to yourself'})
             return
 
-        app.logger.info(f"Received message: {content[:50]}... from {sender_id} to {receiver_id}")
+        # Verify users exist
+        sender = User.query.get(sender_id)
+        receiver = User.query.get(receiver_id)
+        
+        if not sender:
+            print(f"   ❌ Sender not found: {sender_id}")
+            emit('error', {'message': 'Sender not found'})
+            return
+            
+        if not receiver:
+            print(f"   ❌ Receiver not found: {receiver_id}")
+            emit('error', {'message': 'Receiver not found'})
+            return
 
-        # 1) save to database
+        # Save to database
         msg = Message(content=content.strip(), sender_id=sender_id, receiver_id=receiver_id)
         db.session.add(msg)
         db.session.commit()
+        
+        print(f"   ✅ Message saved to database with ID: {msg.id}")
 
-        # 2) emit to the receiver's room
-        room = f"user_{receiver_id}"
-        emit('new_message', {
+        # Prepare message data
+        message_data = {
             'id': msg.id,
             'content': content,
             'sender_id': sender_id,
             'receiver_id': receiver_id,
-            'timestamp': msg.timestamp.strftime("%Y-%m-%d %H:%M:%S")
-        }, room=room)
+            'timestamp': msg.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+            'sender_name': sender.student_id
+        }
+
+        # Emit to receiver's room
+        receiver_room = f"user_{receiver_id}"
+        print(f"   📤 Sending to receiver room: {receiver_room}")
+        socketio.emit('new_message', message_data, room=receiver_room)
         
-        # 3) Also emit back to the sender for confirmation
+        # Emit confirmation to sender
         sender_room = f"user_{sender_id}"
-        emit('message_sent', {
+        print(f"   📤 Sending confirmation to sender room: {sender_room}")
+        socketio.emit('message_sent', {
             'id': msg.id,
             'content': content,
             'receiver_id': receiver_id,
             'timestamp': msg.timestamp.strftime("%Y-%m-%d %H:%M:%S")
         }, room=sender_room)
         
+        print(f"   ✅ Message handling completed successfully")
+        
+    except ValueError as e:
+        print(f"   ❌ Value error in message handler: {str(e)}")
+        emit('error', {'message': 'Invalid data format'})
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"Socket message error: {str(e)}")
+        print(f"   ❌ Unexpected error in message handler: {str(e)}")
+        import traceback
+        traceback.print_exc()
         emit('error', {'message': 'Failed to send message'})
+
+# Add a test endpoint to check Socket.IO status
+@app.route('/api/socket_status')
+@login_required
+def socket_status():
+    """Check Socket.IO server status"""
+    try:
+        # Get basic server info
+        status = {
+            'status': 'running',
+            'async_mode': socketio.async_mode,
+            'logger_enabled': hasattr(socketio, 'logger'),
+            'cors_allowed_origins': '*' if socketio.server.cors_allowed_origins == '*' else 'restricted'
+        }
+        
+        return jsonify(status)
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 # ============================================================================
 # ERROR HANDLERS
@@ -951,6 +1064,20 @@ def internal_error(error):
 def too_large(error):
     flash('File too large. Maximum size is 5MB.', 'error')
     return redirect(request.url)
+
+# ============================================================================
+# STARTUP LOGGING
+# ============================================================================
+
+# Log Socket.IO configuration on startup
+def log_socketio_config():
+    """Log Socket.IO configuration details"""
+    print("\n🔌 Socket.IO Configuration:")
+    print(f"   Async Mode: {socketio.async_mode}")
+    print(f"   Logger Enabled: {hasattr(socketio, 'logger')}")
+    print(f"   CORS Origins: {getattr(socketio.server, 'cors_allowed_origins', 'default')}")
+    print(f"   Engine.IO Version: {socketio.server.eio.version}")
+    print(f"   Socket.IO Version: {socketio.server.version}")
 
 # ============================================================================
 # INITIALIZATION AND STARTUP
@@ -974,6 +1101,9 @@ with app.app_context():
     except Exception as e:
         app.logger.error(f"✗ Database initialization error: {str(e)}")
         # Continue anyway - app might still work
+
+# Call this after socketio initialization
+log_socketio_config()
 
 # Validate security configuration on startup
 try:
