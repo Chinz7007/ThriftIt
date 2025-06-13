@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="current-user-id" content="{{ current_user.id }}">
   <title>Chat with {{ other_user.student_id }} - ThriftIt</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style_chat.css') }}">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
