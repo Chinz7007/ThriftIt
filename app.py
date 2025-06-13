@@ -956,13 +956,24 @@ def too_large(error):
 # INITIALIZATION AND STARTUP
 # ============================================================================
 
-# Create database tables
+# Create database tables - Force recreation for schema changes
 with app.app_context():
     try:
+        # Force drop and recreate all tables for schema changes
+        app.logger.info("🔄 Recreating database tables...")
+        db.drop_all()
         db.create_all()
         app.logger.info("✓ Database tables created successfully")
+        
+        # Verify tables exist
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        app.logger.info(f"📋 Created tables: {tables}")
+        
     except Exception as e:
         app.logger.error(f"✗ Database initialization error: {str(e)}")
+        # Continue anyway - app might still work
 
 # Validate security configuration on startup
 try:
