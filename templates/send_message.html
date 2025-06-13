@@ -4,10 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>New Message - ThriftIt</title>
+  <!-- FIXED: Add meta tag for current user ID -->
+  <meta name="current-user-id" content="{{ current_user.id }}">
+  
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='style_send_message.css') }}">
+
 </head>
 <body>
   {% include 'profile_header.html' %}
@@ -73,7 +77,6 @@
     </div>
   </div>
 
-    <script src="{{ url_for('static', filename='script_send_message.js') }}"></script>
+<script src="{{ url_for('static', filename='script_send_message.js') }}"></script>
 </body>
 </html>
-
