@@ -4,180 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ product.name }} – ThriftIt</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-            margin: 0;
-            padding: 0;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            display: flex;
-            gap: 20px;
-        }
-        
-        .main-product {
-            flex: 1;
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: relative;
-        }
-        
-        .main-product img {
-            max-width: 400px;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .main-product h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        
-        .buttons {
-            margin: 20px 0;
-        }
-        
-        .button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            background-color: #00b894;
-            color: white;
-            text-decoration: none;
-            display: inline-block;
-            margin-right: 10px;
-        }
-        
-        .button.disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .back-link {
-            display: inline-block;
-            margin-top: 20px;
-            color: #00b09b;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        
-        .recent-box {
-            width: 250px;
-            background-color: #f5f5f5;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        
-        .recent-box h3 {
-            font-size: 18px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .recent-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .recent-item:last-child {
-            border-bottom: none;
-        }
-        
-        .recent-item img {
-            width: 50px;
-            height: 50px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            object-fit: cover;
-        }
-        
-        .recent-item a {
-            text-decoration: none;
-            color: #333;
-            font-size: 14px;
-        }
-        
-        .detail-item {
-            margin: 8px 0;
-            font-size: 16px;
-        }
-        
-        .detail-item strong {
-            display: inline-block;
-            width: 100px;
-        }
-        
-        /* Favourite Star Styles */
-        .fav-container {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-        }
-        
-        .fav-star {
-            cursor: pointer;
-            font-size: 28px;
-            color: #ccc;
-            transition: all 0.3s ease;
-            user-select: none;
-            display: inline-block;
-            padding: 5px;
-        }
-        
-        .fav-star:hover {
-            transform: scale(1.1);
-            color: #ffd700;
-        }
-        
-        .fav-star.active {
-            color: #ffd700;
-        }
-        
-        /* Notification Styles */
-        .notification {
-            position: fixed;
-            top: 30px;
-            right: 30px;
-            padding: 18px 25px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transform: translateX(400px);
-            transition: transform 0.4s ease;
-            z-index: 1000;
-            font-weight: 500;
-            color: white;
-        }
-        
-        .notification.show {
-            transform: translateX(0);
-        }
-        
-        .notification.success {
-            background: #28a745;
-        }
-        
-        .notification.error {
-            background: #dc3545;
-        }
-    </style>
+
+    <!-- Link to external CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_product_detail.css') }}">
 </head>
 <body>
     {% include 'profile_header.html' %}
-    
+
     <div class="container">
         <div class="main-product">
             <!-- Favourite Star -->
@@ -188,11 +21,11 @@
                     ☆
                 </span>
             </div>
-            
+
             <img src="{{ url_for('uploads', filename=product.image) }}" alt="{{ product.name }}">
             <h1>{{ product.name }}</h1>
             <div class="price"><strong>Price:</strong> RM{{ "%.2f"|format(product.price) }}</div>
-            
+
             <div class="buttons">
                 {% if product.seller_id == current_user.id %}
                     <span class="button disabled">Your Product</span>
@@ -200,17 +33,17 @@
                     <a href="{{ url_for('chat_with_seller', product_id=product.id) }}" class="button">Chat with Seller</a>
                 {% endif %}
             </div>
-            
+
             <div class="details">
                 <h2>Details</h2>
                 <div class="detail-item"><strong>Condition:</strong> {{ product.condition }}</div>
                 <div class="detail-item"><strong>Description:</strong> {{ product.description }}</div>
                 <div class="detail-item"><strong>Seller:</strong> {{ product.seller.student_id }}</div>
             </div>
-            
+
             <a class="back-link" href="{{ url_for('products') }}">← Back to Products</a>
         </div>
-        
+
         <div class="recent-box">
             <h3>Recently Added</h3>
             {% for item in recent_products %}
@@ -224,112 +57,7 @@
         </div>
     </div>
 
-    <script>
-        function toggleWishlist(starElement, productId) {
-            const isInWishlist = starElement.classList.contains('active');
-            
-            if (isInWishlist) {
-                // Remove from wishlist
-                fetch(`/api/wishlist/remove/${productId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        starElement.classList.remove('active');
-                        starElement.textContent = '☆'; // hollow star
-                        showNotification(data.message, 'success');
-                    } else {
-                        showNotification(data.message, 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Error updating wishlist', 'error');
-                });
-            } else {
-                // Add to wishlist
-                fetch(`/api/wishlist/add/${productId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        starElement.classList.add('active');
-                        starElement.textContent = '★'; // filled star
-                        showNotification(data.message, 'success');
-                    } else {
-                        showNotification(data.message, 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Error updating wishlist', 'error');
-                });
-            }
-        }
-
-        function showNotification(message, type = 'success') {
-            // Remove existing notification if any
-            const existingNotification = document.getElementById('notification');
-            if (existingNotification) {
-                existingNotification.remove();
-            }
-            
-            // Create new notification element
-            const notification = document.createElement('div');
-            notification.id = 'notification';
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            // Show notification
-            setTimeout(() => {
-                notification.classList.add('show');
-            }, 100);
-            
-            // Hide notification after 3.5 seconds
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.remove();
-                    }
-                }, 400);
-            }, 3500);
-        }
-
-        // Check wishlist status on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const starElement = document.querySelector('.fav-star[data-product-id]');
-            
-            if (starElement) {
-                const productId = starElement.getAttribute('data-product-id');
-                
-                fetch(`/api/wishlist/check/${productId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.in_wishlist) {
-                            starElement.classList.add('active');
-                            starElement.textContent = '★'; // filled star
-                        } else {
-                            starElement.classList.remove('active');
-                            starElement.textContent = '☆'; // hollow star
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error checking wishlist status:', error);
-                        // Default to hollow star if there's an error
-                        starElement.textContent = '☆';
-                    });
-            }
-        });
-    </script>
+    <!-- Link to external JavaScript -->
+    <script src="{{ url_for('static', filename='script_product_detail.js') }}"></script>
 </body>
 </html>

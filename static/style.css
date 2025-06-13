@@ -78,6 +78,7 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: transform 0.2s;
   min-width: 150px; /* Ensure consistent card width */
+  text-decoration: none;
 }
 
 .category-card:hover {
@@ -123,6 +124,7 @@
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: transform 0.2s;
+  text-decoration: none;
 }
 
 /* Responsive adjustment for mobile */

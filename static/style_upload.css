@@ -1,0 +1,81 @@
+
+         body {
+            background-color: #ffffff;
+            color: rgb(0, 0, 0);
+            font-family: Arial, sans-serif;
+        }
+
+        .upload-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .left-box, .right-box {
+            background-color: #007cb6;
+            padding: 20px;
+            border-radius: 10px;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+        }
+
+        input[type="text"], input[type="file"], textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 16px 0;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #000000;
+            color: white;
+        }
+
+        textarea {
+            height: 100px;
+        }
+        
+        .cond-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 4px;
+            border: 1px solid #666;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #f0f0f0;
+            color: #333;
+            transition: background 0.2s, color 0.2s;
+        }
+        .cond-btn input {
+            display: none;
+        }
+
+        .cond-btn:has(input:checked) {
+            background: #05eeff;
+            color: #000000;
+            border-color: #000000;
+        }
+
+        .checkbox-area {
+            margin: 15px 0;
+        }
+
+        .submit-btn {
+            margin-top: 20px;
+            padding: 12px 24px;
+            background-color: #00b09b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .submit-btn:hover {
+            background-color: #007767;
+        }

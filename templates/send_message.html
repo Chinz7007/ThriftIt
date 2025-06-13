@@ -7,6 +7,9 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<<<<<<< HEAD
+  <link rel="stylesheet" href="{{ url_for('static', filename='style_send_message.css') }}">
+=======
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -109,7 +112,6 @@
       background: #e3f2fd;
       color: #1976d2;
       border-bottom: 1px solid #bbdefb;
-      transition: all 0.3s ease;
     }
 
     .status-indicator.connected {
@@ -120,13 +122,6 @@
     .status-indicator.error {
       background: #ffebee;
       color: #c62828;
-    }
-
-    .status-indicator.hidden {
-      opacity: 0;
-      height: 0;
-      padding: 0;
-      overflow: hidden;
     }
 
     .chat-messages {
@@ -196,7 +191,6 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       position: relative;
       word-wrap: break-word;
-      max-width: 100%;
     }
 
     .message.sent .message-content {
@@ -213,7 +207,6 @@
 
     .message.received .message-time {
       text-align: left;
-      color: #6c757d;
     }
 
     .empty-state {
@@ -256,7 +249,7 @@
       width: 100%;
       min-height: 44px;
       max-height: 120px;
-      padding: 12px 16px;
+      padding: 12px 50px 12px 16px;
       border: 2px solid #e9ecef;
       border-radius: 22px;
       font-size: 14px;
@@ -265,7 +258,6 @@
       outline: none;
       transition: border-color 0.2s;
       line-height: 1.4;
-      box-sizing: border-box;
     }
 
     .message-input:focus {
@@ -290,10 +282,9 @@
       justify-content: center;
       transition: all 0.2s;
       box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
-      flex-shrink: 0;
     }
 
-    .send-btn:hover:not(:disabled) {
+    .send-btn:hover {
       transform: scale(1.05);
       box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
     }
@@ -312,7 +303,6 @@
       font-size: 13px;
       color: #6c757d;
       font-style: italic;
-      background: rgba(0, 0, 0, 0.02);
     }
 
     .online-indicator {
@@ -320,6 +310,7 @@
       height: 8px;
       background: #4CAF50;
       border-radius: 50%;
+      margin-left: 8px;
       animation: pulse 2s infinite;
     }
 
@@ -377,33 +368,9 @@
     .chat-messages::-webkit-scrollbar-thumb:hover {
       background: #a1a1a1;
     }
-
-    /* Connection timeout notification */
-    .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #dc3545;
-      color: white;
-      padding: 15px 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      transform: translateX(400px);
-      transition: transform 0.3s ease;
-      z-index: 1000;
-      font-weight: 500;
-    }
-
-    .notification.show {
-      transform: translateX(0);
-    }
-
-    .notification.success {
-      background: #28a745;
-    }
   </style>
+>>>>>>> 76d7f0c7a99efa0002184cf90af73d84bf28ff2f
 </head>
-
 <body>
   {% include 'profile_header.html' %}
   
@@ -427,7 +394,7 @@
       <select id="recipient" class="recipient-dropdown">
         <option value="">Select a contact...</option>
         {% for u in users if u.id != current_user.id %}
-          <option value="{{ u.id }}">{{ u.student_id }}{% if u.full_name %} ({{ u.full_name }}){% endif %}</option>
+          <option value="{{ u.id }}">{{ u.student_id }}</option>
         {% endfor %}
       </select>
     </div>
@@ -468,326 +435,7 @@
     </div>
   </div>
 
-  <!-- Notification area -->
-  <div class="notification" id="notification" style="display: none;"></div>
-
-  <script>
-    // Initialize socket connection with better error handling
-    const socket = io({
-      autoConnect: true,
-      reconnection: true,
-      reconnectionDelay: 2000,
-      reconnectionAttempts: 5,
-      timeout: 20000,
-      transports: ['websocket', 'polling']
-    });
-
-    const statusDisplay = document.getElementById('connectionStatus');
-    const currentUserId = {{ current_user.id }};
-    let selectedRecipient = null;
-    let isConnected = false;
-    let connectionTimeout = null;
-    
-    // DOM elements
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("messageInput");
-    const recipient = document.getElementById("recipient");
-    const sendBtn = document.getElementById("sendBtn");
-    
-    // Connection timeout handler
-    function startConnectionTimeout() {
-      connectionTimeout = setTimeout(() => {
-        if (!isConnected) {
-          showNotification('Connection timeout. Please refresh the page.', 'error');
-          statusDisplay.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Connection failed. Please refresh.';
-          statusDisplay.className = 'status-indicator error';
-        }
-      }, 15000); // 15 second timeout
-    }
-
-    // Start timeout on page load
-    startConnectionTimeout();
-    
-    // Auto-resize textarea
-    input.addEventListener('input', function() {
-      this.style.height = 'auto';
-      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-      updateSendButton();
-    });
-    
-    // Connection handling
-    socket.on('connect', () => {
-      console.log('Connected to server');
-      isConnected = true;
-      
-      // Clear timeout
-      if (connectionTimeout) {
-        clearTimeout(connectionTimeout);
-      }
-      
-      statusDisplay.innerHTML = '<i class="fas fa-check-circle"></i> Connected and ready!';
-      statusDisplay.className = 'status-indicator connected';
-      
-      // Join personal room
-      socket.emit('join', { user_id: currentUserId });
-      
-      setTimeout(() => {
-        statusDisplay.classList.add('hidden');
-      }, 2000);
-    });
-    
-    socket.on('disconnect', (reason) => {
-      console.log('Disconnected:', reason);
-      isConnected = false;
-      statusDisplay.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Connection lost. Reconnecting...';
-      statusDisplay.className = 'status-indicator error';
-      statusDisplay.classList.remove('hidden');
-    });
-
-    socket.on('connect_error', (error) => {
-      console.error('Connection error:', error);
-      isConnected = false;
-      statusDisplay.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Connection failed. Retrying...';
-      statusDisplay.className = 'status-indicator error';
-      statusDisplay.classList.remove('hidden');
-    });
-
-    socket.on('reconnect', (attemptNumber) => {
-      console.log('Reconnected after', attemptNumber, 'attempts');
-      isConnected = true;
-      statusDisplay.innerHTML = '<i class="fas fa-check-circle"></i> Reconnected!';
-      statusDisplay.className = 'status-indicator connected';
-      
-      // Rejoin room
-      socket.emit('join', { user_id: currentUserId });
-      
-      setTimeout(() => {
-        statusDisplay.classList.add('hidden');
-      }, 2000);
-    });
-    
-    // Update selected recipient when dropdown changes
-    recipient.addEventListener('change', () => {
-      selectedRecipient = recipient.value;
-      
-      if (selectedRecipient) {
-        // Enable input and send button
-        input.disabled = false;
-        input.placeholder = `Message ${recipient.options[recipient.selectedIndex].text}...`;
-        updateSendButton();
-        
-        // Clear chat and load conversation
-        loadConversation(selectedRecipient);
-        input.focus();
-      } else {
-        // Disable input and send button
-        input.disabled = true;
-        input.placeholder = "Select a contact first...";
-        sendBtn.disabled = true;
-        showEmptyState();
-      }
-    });
-    
-    // Send message function with better validation
-    function sendMessage() {
-      const content = input.value.trim();
-      if (!content || !selectedRecipient) return;
-      
-      // Check connection status
-      if (!isConnected) {
-        showNotification('Not connected to server. Please wait...', 'error');
-        return;
-      }
-      
-      const data = {
-        sender_id: currentUserId,
-        receiver_id: parseInt(selectedRecipient),
-        content: content
-      };
-      
-      // Disable input temporarily to prevent double-sending
-      input.disabled = true;
-      sendBtn.disabled = true;
-      
-      // Send via socket
-      socket.emit('send_message', data);
-      
-      // Clear input field
-      input.value = '';
-      input.style.height = 'auto';
-      
-      // Re-enable input after a short delay
-      setTimeout(() => {
-        input.disabled = false;
-        updateSendButton();
-        input.focus();
-      }, 500);
-    }
-    
-    // Update send button state
-    function updateSendButton() {
-      const hasContent = input.value.trim().length > 0;
-      const hasRecipient = selectedRecipient !== null && selectedRecipient !== '';
-      sendBtn.disabled = !(hasContent && hasRecipient && isConnected);
-    }
-    
-    // Event listeners
-    sendBtn.addEventListener('click', sendMessage);
-    
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
-    
-    // Load conversation history
-    function loadConversation(userId) {
-      showLoadingState();
-      
-      fetch(`/api/conversations/${userId}`)
-        .then(response => response.json())
-        .then(messages => {
-          chat.innerHTML = '';
-          
-          if (messages.length === 0) {
-            showEmptyConversation();
-          } else {
-            messages.forEach(msg => {
-              appendMessage(
-                msg.is_sender ? 'sent' : 'received',
-                msg.content,
-                msg.sender_name,
-                msg.timestamp
-              );
-            });
-            scrollToBottom();
-          }
-        })
-        .catch(error => {
-          console.error('Error loading conversation:', error);
-          showErrorState();
-        });
-    }
-    
-    // Message display functions
-    function appendMessage(type, text, senderName, timestamp) {
-      const messageDiv = document.createElement("div");
-      messageDiv.className = `message ${type}`;
-      
-      const avatar = document.createElement("div");
-      avatar.className = "message-avatar";
-      avatar.textContent = senderName.charAt(0).toUpperCase();
-      
-      const content = document.createElement("div");
-      content.className = "message-content";
-      
-      const formattedTime = new Date(timestamp).toLocaleTimeString([], {
-        hour: '2-digit', 
-        minute: '2-digit'
-      });
-      
-      content.innerHTML = `
-        <div>${escapeHtml(text)}</div>
-        <div class="message-time">${formattedTime}</div>
-      `;
-      
-      messageDiv.appendChild(avatar);
-      messageDiv.appendChild(content);
-      
-      chat.appendChild(messageDiv);
-      scrollToBottom();
-    }
-    
-    // Handle incoming messages with duplicate prevention
-    let lastMessageId = null;
-    
-    socket.on('new_message', msg => {
-      console.log('Received message:', msg);
-      
-      // Prevent duplicates
-      if (msg.id === lastMessageId) return;
-      lastMessageId = msg.id;
-      
-      if (msg.sender_id == selectedRecipient) {
-        appendMessage('received', msg.content, 'They', msg.timestamp);
-      }
-    });
-    
-    // Handle sent message confirmation
-    socket.on('message_sent', msg => {
-      console.log('Message sent confirmation:', msg);
-      if (msg.receiver_id == selectedRecipient) {
-        appendMessage('sent', msg.content, 'You', msg.timestamp);
-      }
-    });
-    
-    // Utility functions
-    function scrollToBottom() {
-      setTimeout(() => {
-        chat.scrollTop = chat.scrollHeight;
-      }, 100);
-    }
-    
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-    
-    function showEmptyState() {
-      chat.innerHTML = `
-        <div class="empty-state">
-          <i class="fas fa-comments"></i>
-          <h3>Start a Conversation</h3>
-          <p>Select a contact above to begin chatting</p>
-        </div>
-      `;
-    }
-    
-    function showEmptyConversation() {
-      chat.innerHTML = `
-        <div class="empty-state">
-          <i class="fas fa-paper-plane"></i>
-          <h3>No messages yet</h3>
-          <p>Send the first message to start this conversation!</p>
-        </div>
-      `;
-    }
-    
-    function showLoadingState() {
-      chat.innerHTML = `
-        <div class="empty-state">
-          <i class="fas fa-circle-notch fa-spin"></i>
-          <h3>Loading conversation...</h3>
-        </div>
-      `;
-    }
-    
-    function showErrorState() {
-      chat.innerHTML = `
-        <div class="empty-state">
-          <i class="fas fa-exclamation-triangle"></i>
-          <h3>Error loading messages</h3>
-          <p>Please refresh the page and try again</p>
-        </div>
-      `;
-    }
-
-    function showNotification(message, type = 'error') {
-      const notification = document.getElementById('notification');
-      notification.textContent = message;
-      notification.className = `notification ${type}`;
-      notification.style.display = 'block';
-      notification.classList.add('show');
-      
-      setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-          notification.style.display = 'none';
-        }, 300);
-      }, 3000);
-    }
-  </script>
+    <script src="{{ url_for('static', filename='script_send_message.js') }}"></script>
 </body>
 </html>
+
