@@ -109,6 +109,7 @@
       background: #e3f2fd;
       color: #1976d2;
       border-bottom: 1px solid #bbdefb;
+      transition: all 0.3s ease;
     }
 
     .status-indicator.connected {
@@ -119,6 +120,13 @@
     .status-indicator.error {
       background: #ffebee;
       color: #c62828;
+    }
+
+    .status-indicator.hidden {
+      opacity: 0;
+      height: 0;
+      padding: 0;
+      overflow: hidden;
     }
 
     .chat-messages {
@@ -188,6 +196,7 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       position: relative;
       word-wrap: break-word;
+      max-width: 100%;
     }
 
     .message.sent .message-content {
@@ -204,6 +213,7 @@
 
     .message.received .message-time {
       text-align: left;
+      color: #6c757d;
     }
 
     .empty-state {
@@ -246,7 +256,7 @@
       width: 100%;
       min-height: 44px;
       max-height: 120px;
-      padding: 12px 50px 12px 16px;
+      padding: 12px 16px;
       border: 2px solid #e9ecef;
       border-radius: 22px;
       font-size: 14px;
@@ -255,6 +265,7 @@
       outline: none;
       transition: border-color 0.2s;
       line-height: 1.4;
+      box-sizing: border-box;
     }
 
     .message-input:focus {
@@ -279,9 +290,10 @@
       justify-content: center;
       transition: all 0.2s;
       box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+      flex-shrink: 0;
     }
 
-    .send-btn:hover {
+    .send-btn:hover:not(:disabled) {
       transform: scale(1.05);
       box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
     }
@@ -300,6 +312,7 @@
       font-size: 13px;
       color: #6c757d;
       font-style: italic;
+      background: rgba(0, 0, 0, 0.02);
     }
 
     .online-indicator {
@@ -307,7 +320,6 @@
       height: 8px;
       background: #4CAF50;
       border-radius: 50%;
-      margin-left: 8px;
       animation: pulse 2s infinite;
     }
 
@@ -365,6 +377,30 @@
     .chat-messages::-webkit-scrollbar-thumb:hover {
       background: #a1a1a1;
     }
+
+    /* Connection timeout notification */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #dc3545;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transform: translateX(400px);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      font-weight: 500;
+    }
+
+    .notification.show {
+      transform: translateX(0);
+    }
+
+    .notification.success {
+      background: #28a745;
+    }
   </style>
 </head>
 
@@ -391,7 +427,7 @@
       <select id="recipient" class="recipient-dropdown">
         <option value="">Select a contact...</option>
         {% for u in users if u.id != current_user.id %}
-          <option value="{{ u.id }}">{{ u.student_id }}</option>
+          <option value="{{ u.id }}">{{ u.student_id }}{% if u.full_name %} ({{ u.full_name }}){% endif %}</option>
         {% endfor %}
       </select>
     </div>
@@ -432,12 +468,25 @@
     </div>
   </div>
 
+  <!-- Notification area -->
+  <div class="notification" id="notification" style="display: none;"></div>
+
   <script>
-    // Initialize socket connection
-    const socket = io();
+    // Initialize socket connection with better error handling
+    const socket = io({
+      autoConnect: true,
+      reconnection: true,
+      reconnectionDelay: 2000,
+      reconnectionAttempts: 5,
+      timeout: 20000,
+      transports: ['websocket', 'polling']
+    });
+
     const statusDisplay = document.getElementById('connectionStatus');
     const currentUserId = {{ current_user.id }};
     let selectedRecipient = null;
+    let isConnected = false;
+    let connectionTimeout = null;
     
     // DOM elements
     const chat = document.getElementById("chat");
@@ -445,14 +494,37 @@
     const recipient = document.getElementById("recipient");
     const sendBtn = document.getElementById("sendBtn");
     
+    // Connection timeout handler
+    function startConnectionTimeout() {
+      connectionTimeout = setTimeout(() => {
+        if (!isConnected) {
+          showNotification('Connection timeout. Please refresh the page.', 'error');
+          statusDisplay.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Connection failed. Please refresh.';
+          statusDisplay.className = 'status-indicator error';
+        }
+      }, 15000); // 15 second timeout
+    }
+
+    // Start timeout on page load
+    startConnectionTimeout();
+    
     // Auto-resize textarea
     input.addEventListener('input', function() {
       this.style.height = 'auto';
       this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      updateSendButton();
     });
     
     // Connection handling
     socket.on('connect', () => {
+      console.log('Connected to server');
+      isConnected = true;
+      
+      // Clear timeout
+      if (connectionTimeout) {
+        clearTimeout(connectionTimeout);
+      }
+      
       statusDisplay.innerHTML = '<i class="fas fa-check-circle"></i> Connected and ready!';
       statusDisplay.className = 'status-indicator connected';
       
@@ -460,14 +532,38 @@
       socket.emit('join', { user_id: currentUserId });
       
       setTimeout(() => {
-        statusDisplay.style.display = 'none';
+        statusDisplay.classList.add('hidden');
       }, 2000);
     });
     
-    socket.on('disconnect', () => {
-      statusDisplay.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Disconnected. Trying to reconnect...';
+    socket.on('disconnect', (reason) => {
+      console.log('Disconnected:', reason);
+      isConnected = false;
+      statusDisplay.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Connection lost. Reconnecting...';
       statusDisplay.className = 'status-indicator error';
-      statusDisplay.style.display = 'block';
+      statusDisplay.classList.remove('hidden');
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Connection error:', error);
+      isConnected = false;
+      statusDisplay.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Connection failed. Retrying...';
+      statusDisplay.className = 'status-indicator error';
+      statusDisplay.classList.remove('hidden');
+    });
+
+    socket.on('reconnect', (attemptNumber) => {
+      console.log('Reconnected after', attemptNumber, 'attempts');
+      isConnected = true;
+      statusDisplay.innerHTML = '<i class="fas fa-check-circle"></i> Reconnected!';
+      statusDisplay.className = 'status-indicator connected';
+      
+      // Rejoin room
+      socket.emit('join', { user_id: currentUserId });
+      
+      setTimeout(() => {
+        statusDisplay.classList.add('hidden');
+      }, 2000);
     });
     
     // Update selected recipient when dropdown changes
@@ -492,10 +588,16 @@
       }
     });
     
-    // Send message function
+    // Send message function with better validation
     function sendMessage() {
       const content = input.value.trim();
       if (!content || !selectedRecipient) return;
+      
+      // Check connection status
+      if (!isConnected) {
+        showNotification('Not connected to server. Please wait...', 'error');
+        return;
+      }
       
       const data = {
         sender_id: currentUserId,
@@ -503,7 +605,7 @@
         content: content
       };
       
-      // Disable input temporarily
+      // Disable input temporarily to prevent double-sending
       input.disabled = true;
       sendBtn.disabled = true;
       
@@ -514,19 +616,19 @@
       input.value = '';
       input.style.height = 'auto';
       
-      // Re-enable input
+      // Re-enable input after a short delay
       setTimeout(() => {
         input.disabled = false;
         updateSendButton();
         input.focus();
-      }, 100);
+      }, 500);
     }
     
     // Update send button state
     function updateSendButton() {
       const hasContent = input.value.trim().length > 0;
       const hasRecipient = selectedRecipient !== null && selectedRecipient !== '';
-      sendBtn.disabled = !(hasContent && hasRecipient);
+      sendBtn.disabled = !(hasContent && hasRecipient && isConnected);
     }
     
     // Event listeners
@@ -538,8 +640,6 @@
         sendMessage();
       }
     });
-    
-    input.addEventListener('input', updateSendButton);
     
     // Load conversation history
     function loadConversation(userId) {
@@ -588,7 +688,7 @@
       });
       
       content.innerHTML = `
-        <div>${text}</div>
+        <div>${escapeHtml(text)}</div>
         <div class="message-time">${formattedTime}</div>
       `;
       
@@ -599,8 +699,16 @@
       scrollToBottom();
     }
     
-    // Handle incoming messages
+    // Handle incoming messages with duplicate prevention
+    let lastMessageId = null;
+    
     socket.on('new_message', msg => {
+      console.log('Received message:', msg);
+      
+      // Prevent duplicates
+      if (msg.id === lastMessageId) return;
+      lastMessageId = msg.id;
+      
       if (msg.sender_id == selectedRecipient) {
         appendMessage('received', msg.content, 'They', msg.timestamp);
       }
@@ -608,6 +716,7 @@
     
     // Handle sent message confirmation
     socket.on('message_sent', msg => {
+      console.log('Message sent confirmation:', msg);
       if (msg.receiver_id == selectedRecipient) {
         appendMessage('sent', msg.content, 'You', msg.timestamp);
       }
@@ -615,7 +724,15 @@
     
     // Utility functions
     function scrollToBottom() {
-      chat.scrollTop = chat.scrollHeight;
+      setTimeout(() => {
+        chat.scrollTop = chat.scrollHeight;
+      }, 100);
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
     }
     
     function showEmptyState() {
@@ -655,6 +772,21 @@
           <p>Please refresh the page and try again</p>
         </div>
       `;
+    }
+
+    function showNotification(message, type = 'error') {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = `notification ${type}`;
+      notification.style.display = 'block';
+      notification.classList.add('show');
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+          notification.style.display = 'none';
+        }, 300);
+      }, 3000);
     }
   </script>
 </body>

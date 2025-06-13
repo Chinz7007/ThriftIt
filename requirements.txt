@@ -1,9 +1,33 @@
-Flask>=3.0.0
-Flask-SQLAlchemy>=3.1.0
-Flask-SocketIO>=5.3.0
-Flask-Login>=0.6.0
-Werkzeug>=3.0.0
-gunicorn>=21.0.0
-eventlet>=0.33.0
+# Core Flask framework
+Flask>=2.3.3
+Flask-SQLAlchemy>=3.0.5
+Flask-SocketIO>=5.3.6
+Flask-Login>=0.6.3
+
+# Web server and utilities
+Werkzeug>=2.3.7
+gunicorn>=21.2.0
+
+# Async support for Socket.IO
+eventlet>=0.33.3
+python-socketio>=5.8.0
+python-engineio>=4.7.1
+
+# Database support
+psycopg2-binary>=2.9.7  # PostgreSQL adapter for production
+SQLAlchemy>=2.0.21
+
+# Environment management
 python-dotenv>=1.0.0
-psycopg2-binary>=2.9.0
+
+# Security and cryptography
+cryptography>=41.0.7
+
+# File handling and validation
+Pillow>=10.0.1  # For image validation and processing
+
+# Development dependencies (optional)
+# Uncomment for development
+# flask-debugtoolbar==0.13.1
+# pytest==7.4.2
+# pytest-flask==1.2.0
