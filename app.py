@@ -31,6 +31,13 @@ if not SECRET_KEY:
 
 app.secret_key = SECRET_KEY
 
+def get_database_url():
+    database_url = os.environ.get('DATABASE_URL', 'sqlite:///products.db')
+    # Handle postgres:// vs postgresql:// issue for Render
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    return database_url
+
 # Enhanced security configuration
 app.config.update(
     # File upload security
@@ -42,13 +49,9 @@ app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
     
-# Database configuration
-DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///products.db')
-# Handle postgres:// vs postgresql:// issue for Render
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-SQLALCHEMY_DATABASE_URI=DATABASE_URL,
-SQLALCHEMY_TRACK_MODIFICATIONS=False,
+    # Database configuration with PostgreSQL URL fix
+    SQLALCHEMY_DATABASE_URI=get_database_url(),
+    SQLALCHEMY_TRACK_MODIFICATIONS=False,
 )
 
 # File upload configuration - Production ready
@@ -63,7 +66,15 @@ else:
 
 # Create the upload directory
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-socketio = SocketIO(app, cors_allowed_origins="*")
+
+# SocketIO initialization - Production ready
+if os.environ.get('FLASK_ENV') == 'production':
+    # Production CORS settings
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+else:
+    # Development settings
+    socketio = SocketIO(app, cors_allowed_origins="*")
+
 db = SQLAlchemy(app)
 
 login_manager = LoginManager()
@@ -915,26 +926,20 @@ def handle_socket_message(data):
         app.logger.error(f"Socket message error: {str(e)}")
         emit('error', {'message': 'Failed to send message'})
 
-
-if os.environ.get('FLASK_ENV') == 'production':
-    # Production CORS settings
-    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
-else:
-    # Development settings
-    socketio = SocketIO(app, cors_allowed_origins="*")
-
 # ============================================================================
 # ERROR HANDLERS
 # ============================================================================
 
 @app.errorhandler(404)
 def not_found_error(error):
-    return render_template('errors/404.html'), 404
+    flash('Page not found.', 'error')
+    return redirect(url_for('home'))
 
 @app.errorhandler(500)
 def internal_error(error):
     db.session.rollback()
-    return render_template('errors/500.html'), 500
+    flash('Internal server error. Please try again.', 'error')
+    return redirect(url_for('home'))
 
 @app.errorhandler(413)
 def too_large(error):
