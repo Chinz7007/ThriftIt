@@ -1,8 +1,30 @@
 # ============================================================================
-# EVENTLET MONKEY PATCH - MUST BE FIRST!
+# EVENTLET MONKEY PATCH - IMPROVED HANDLING
 # ============================================================================
-import eventlet
-eventlet.monkey_patch()
+import os
+import sys
+
+# Check if we're in production and apply eventlet patch appropriately
+def setup_eventlet():
+    """Setup eventlet with proper error handling"""
+    try:
+        # Only patch if we're not already patched and we're in production
+        if not hasattr(sys.modules.get('socket', {}), '_original_socket'):
+            import eventlet
+            eventlet.monkey_patch()
+            print("🔧 Eventlet monkey patch applied successfully")
+            return True
+    except ImportError:
+        print("⚠️  Eventlet not available, falling back to threading mode")
+        return False
+    except Exception as e:
+        print(f"⚠️  Eventlet patch failed: {e}, falling back to threading mode")
+        return False
+    
+    return True
+
+# Apply eventlet patch
+eventlet_available = setup_eventlet()
 
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -11,7 +33,6 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
-import os
 import secrets
 import logging
 
@@ -74,33 +95,50 @@ else:
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 # ============================================================================
-# SOCKET.IO CONFIGURATION WITH ENHANCED DEBUGGING
+# SOCKET.IO CONFIGURATION WITH IMPROVED ERROR HANDLING
 # ============================================================================
 
-# Enhanced SocketIO initialization with debugging
-if os.environ.get('FLASK_ENV') == 'production':
-    # Production configuration
-    socketio = SocketIO(
-        app, 
-        cors_allowed_origins="*",
-        async_mode='eventlet',
-        logger=True,
-        engineio_logger=True,
-        ping_timeout=60,
-        ping_interval=25
-    )
-    print("🔌 Socket.IO initialized for PRODUCTION with eventlet")
-else:
-    # Development configuration
-    socketio = SocketIO(
-        app, 
-        cors_allowed_origins="*",
-        logger=True,
-        engineio_logger=True,
-        ping_timeout=60,
-        ping_interval=25
-    )
-    print("🔌 Socket.IO initialized for DEVELOPMENT")
+def create_socketio():
+    """Create SocketIO instance with fallback configurations"""
+    is_production = os.environ.get('FLASK_ENV') == 'production'
+    
+    # Configuration options
+    base_config = {
+        'cors_allowed_origins': "*",
+        'logger': False,  # Disable to reduce noise
+        'engineio_logger': False,
+        'ping_timeout': 60,
+        'ping_interval': 25
+    }
+    
+    # Try eventlet first if available
+    if eventlet_available and is_production:
+        try:
+            socketio = SocketIO(app, async_mode='eventlet', **base_config)
+            print("🔌 Socket.IO initialized with eventlet for production")
+            return socketio
+        except Exception as e:
+            print(f"⚠️  Eventlet SocketIO failed: {e}")
+    
+    # Fallback to gevent
+    try:
+        socketio = SocketIO(app, async_mode='gevent', **base_config)
+        print("🔌 Socket.IO initialized with gevent (fallback)")
+        return socketio
+    except Exception as e:
+        print(f"⚠️  Gevent SocketIO failed: {e}")
+    
+    # Final fallback to threading
+    try:
+        socketio = SocketIO(app, async_mode='threading', **base_config)
+        print("🔌 Socket.IO initialized with threading (final fallback)")
+        return socketio
+    except Exception as e:
+        print(f"❌ All SocketIO modes failed: {e}")
+        raise
+
+# Create SocketIO instance
+socketio = create_socketio()
 
 db = SQLAlchemy(app)
 
@@ -1038,7 +1076,8 @@ def socket_status():
             'status': 'running',
             'async_mode': socketio.async_mode,
             'logger_enabled': hasattr(socketio, 'logger'),
-            'cors_allowed_origins': '*' if socketio.server.cors_allowed_origins == '*' else 'restricted'
+            'cors_allowed_origins': '*' if socketio.server.cors_allowed_origins == '*' else 'restricted',
+            'eventlet_available': eventlet_available
         }
         
         return jsonify(status)
@@ -1074,6 +1113,7 @@ def log_socketio_config():
     print("\n🔌 Socket.IO Configuration:")
     print(f"   Async Mode: {socketio.async_mode}")
     print(f"   Logger Enabled: {hasattr(socketio, 'logger')}")
+    print(f"   Eventlet Available: {eventlet_available}")
     
     # Safe access to server attributes
     try:
@@ -1102,21 +1142,36 @@ def log_socketio_config():
 # Create database tables - Force recreation for schema changes
 with app.app_context():
     try:
-        # Force drop and recreate all tables for schema changes
-        app.logger.info("🔄 Recreating database tables...")
-        db.drop_all()
-        db.create_all()
-        app.logger.info("✓ Database tables created successfully")
-        
-        # Verify tables exist
+        # Check if we need to recreate tables
         from sqlalchemy import inspect
         inspector = inspect(db.engine)
+        existing_tables = inspector.get_table_names()
+        
+        if not existing_tables:
+            print("🔄 Creating database tables (first time setup)...")
+            db.create_all()
+        else:
+            print("🔄 Database tables already exist, ensuring they're up to date...")
+            # Only create missing tables, don't drop existing ones
+            db.create_all()
+        
+        # Verify tables exist
         tables = inspector.get_table_names()
-        app.logger.info(f"📋 Created tables: {tables}")
+        print(f"📋 Available tables: {tables}")
+        
+        # Log table counts for verification
+        if tables:
+            user_count = db.session.query(User).count()
+            product_count = db.session.query(Product).count()
+            print(f"📊 Database stats: {user_count} users, {product_count} products")
+        
+        print("✓ Database initialization completed successfully")
         
     except Exception as e:
-        app.logger.error(f"✗ Database initialization error: {str(e)}")
-        # Continue anyway - app might still work
+        print(f"✗ Database initialization error: {str(e)}")
+        # Continue anyway - app might still work in some cases
+        import traceback
+        traceback.print_exc()
 
 # Call this after socketio initialization - FIXED VERSION
 log_socketio_config()
@@ -1127,7 +1182,7 @@ try:
 except Exception as e:
     app.logger.error(f"Security validation failed: {str(e)}")
     if not app.debug:
-        raise
+        print(f"⚠️  Security validation warning: {str(e)}")
 
 # Configure logging for production
 if not app.debug:
@@ -1150,27 +1205,157 @@ if not app.debug:
     app.logger.setLevel(logging.INFO)
     app.logger.info('ThriftIt startup - Production mode')
 
+# ============================================================================
+# PRODUCTION SERVER STARTUP
+# ============================================================================
+
+def run_production_server():
+    """Run production server with appropriate configuration"""
+    port = int(os.environ.get('PORT', 5000))
+    
+    print("🚀 ThriftIt production server starting...")
+    print(f"   Environment: {os.environ.get('FLASK_ENV', 'default')}")
+    print(f"   Socket.IO Async Mode: {socketio.async_mode}")
+    print(f"   Port: {port}")
+    print(f"   Eventlet Available: {eventlet_available}")
+    
+    # Use different startup methods based on async mode and eventlet availability
+    if socketio.async_mode == 'eventlet' and eventlet_available:
+        print("🔧 Starting with eventlet.wsgi server...")
+        try:
+            import eventlet.wsgi
+            import eventlet
+            
+            # Create eventlet socket
+            listener = eventlet.listen(('0.0.0.0', port))
+            
+            # Start the WSGI server
+            eventlet.wsgi.server(listener, app, log_output=False)
+            
+        except Exception as e:
+            print(f"⚠️  Eventlet server failed: {e}")
+            print("🔧 Falling back to socketio.run...")
+            socketio.run(app, host='0.0.0.0', port=port, debug=False)
+    
+    elif socketio.async_mode == 'gevent':
+        print("🔧 Starting with gevent mode...")
+        socketio.run(app, host='0.0.0.0', port=port, debug=False)
+    
+    else:
+        print("🔧 Starting with threading mode...")
+        socketio.run(app, host='0.0.0.0', port=port, debug=False)
+
 if __name__ == "__main__":
     # Development server configuration
     port = int(os.environ.get('PORT', 5000))
     debug_mode = os.environ.get('FLASK_ENV') == 'development'
     
-    # Startup messages
-    app.logger.info("🚀 ThriftIt application started successfully!")
-    app.logger.info(f"   Environment: {os.environ.get('FLASK_ENV', 'default')}")
-    app.logger.info(f"   Debug mode: {debug_mode}")
-    app.logger.info(f"🔧 Starting development server on port {port}")
-    app.logger.info(f"   Secret key: {'✓ Custom' if os.environ.get('SECRET_KEY') else '⚠️  Auto-generated'}")
-    
-    # Use different host based on environment
-    host = 'localhost' if debug_mode else '0.0.0.0'
-    
-    socketio.run(
-        app, 
-        debug=debug_mode,
-        host=host,  # This will be 0.0.0.0 in production
-        port=port
-    )
+    if debug_mode:
+        print("🔧 Starting development server...")
+        print(f"   Debug mode: {debug_mode}")
+        print(f"   Port: {port}")
+        
+        # Use different host based on environment
+        host = 'localhost' if debug_mode else '0.0.0.0'
+        
+        socketio.run(
+            app, 
+            debug=debug_mode,
+            host=host,
+            port=port
+        )
+    else:
+        # Production mode
+        run_production_server()
 else:
-    # For production WSGI servers (Gunicorn)
+    # For production WSGI servers (Gunicorn, uWSGI, etc.)
     application = app
+    
+    # Additional production setup when imported
+    if os.environ.get('FLASK_ENV') == 'production':
+        print("🔧 Application loaded for production WSGI server")
+        print(f"   Socket.IO Async Mode: {socketio.async_mode}")
+        print(f"   Eventlet Available: {eventlet_available}")
+
+# ============================================================================
+# HEALTH CHECK ENDPOINT
+# ============================================================================
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint for monitoring"""
+    try:
+        # Test database connection
+        db.session.execute('SELECT 1')
+        
+        # Test file system access
+        upload_folder_exists = os.path.exists(app.config.get('UPLOAD_FOLDER', ''))
+        
+        health_info = {
+            'status': 'healthy',
+            'timestamp': datetime.utcnow().isoformat(),
+            'database': 'connected',
+            'upload_folder': 'accessible' if upload_folder_exists else 'not_accessible',
+            'socketio_mode': socketio.async_mode,
+            'eventlet_available': eventlet_available
+        }
+        
+        return jsonify(health_info), 200
+        
+    except Exception as e:
+        health_info = {
+            'status': 'unhealthy',
+            'timestamp': datetime.utcnow().isoformat(),
+            'error': str(e),
+            'socketio_mode': socketio.async_mode,
+            'eventlet_available': eventlet_available
+        }
+        
+        return jsonify(health_info), 500
+
+# ============================================================================
+# API STATUS ENDPOINT
+# ============================================================================
+
+@app.route('/api/status')
+def api_status():
+    """API status endpoint with detailed information"""
+    try:
+        # Get database statistics
+        user_count = db.session.query(User).count()
+        product_count = db.session.query(Product).count()
+        message_count = db.session.query(Message).count()
+        
+        status_info = {
+            'api_status': 'operational',
+            'timestamp': datetime.utcnow().isoformat(),
+            'version': '1.0.0',
+            'environment': os.environ.get('FLASK_ENV', 'default'),
+            'database': {
+                'status': 'connected',
+                'users': user_count,
+                'products': product_count,
+                'messages': message_count
+            },
+            'socketio': {
+                'async_mode': socketio.async_mode,
+                'status': 'initialized'
+            },
+            'features': {
+                'real_time_chat': True,
+                'file_upload': True,
+                'wishlist': True,
+                'user_profiles': True
+            }
+        }
+        
+        return jsonify(status_info), 200
+        
+    except Exception as e:
+        error_info = {
+            'api_status': 'error',
+            'timestamp': datetime.utcnow().isoformat(),
+            'error': str(e)
+        }
+        
+        return jsonify(error_info), 500
