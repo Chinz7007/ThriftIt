@@ -1399,39 +1399,17 @@ def run_production_server():
         socketio.run(app, host='0.0.0.0', port=port, debug=False)
 
 if __name__ == "__main__":
-    # Development server configuration
+    # This shouldn't run on Render, but just in case
     port = int(os.environ.get('PORT', 5000))
-    debug_mode = os.environ.get('FLASK_ENV') == 'development'
-    
-    if debug_mode:
-        print("🔧 Starting development server...")
-        print(f"   Debug mode: {debug_mode}")
-        print(f"   Port: {port}")
-        print(f"   Cloudinary: {'✅ Configured' if os.environ.get('CLOUDINARY_CLOUD_NAME') else '❌ Not configured'}")
-        
-        # Use different host based on environment
-        host = 'localhost' if debug_mode else '0.0.0.0'
-        
-        socketio.run(
-            app, 
-            debug=debug_mode,
-            host=host,
-            port=port
-        )
-    else:
-        # Production mode
-        run_production_server()
+    socketio.run(app, host='0.0.0.0', port=port, debug=False)
 else:
-    # For production WSGI servers (Gunicorn, uWSGI, etc.)
+    # This runs on Render with Gunicorn
     application = app
     
-    # Additional production setup when imported
-    if os.environ.get('FLASK_ENV') == 'production':
-        print("🔧 Application loaded for production WSGI server")
-        print(f"   Socket.IO Async Mode: {socketio.async_mode}")
-        print(f"   Eventlet Available: {eventlet_available}")
-        print(f"   Cloudinary: {'✅ Configured' if os.environ.get('CLOUDINARY_CLOUD_NAME') else '❌ Not configured'}")
-
+    # Simple logging for production
+    print("🔧 Application loaded for Gunicorn")
+    print(f"   Socket.IO Async Mode: {socketio.async_mode}")
+    print(f"   Cloudinary: {'✅ Configured' if os.environ.get('CLOUDINARY_CLOUD_NAME') else '❌ Not configured'}")
 # ============================================================================
 # HEALTH CHECK ENDPOINT
 # ============================================================================
