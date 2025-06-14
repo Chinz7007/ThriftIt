@@ -197,7 +197,8 @@
             display: flex;
             gap: 20px;
             overflow-x: auto;
-            padding-bottom: 10px;
+            padding: 10px 0 20px 0;
+            margin: 0 -10px;
         }
 
         .products-grid::-webkit-scrollbar {
@@ -226,6 +227,9 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
             border: 2px solid transparent;
+            min-height: 420px;
+            display: flex;
+            flex-direction: column;
         }
 
         .product-card:hover {
@@ -272,6 +276,10 @@
 
         .product-info {
             padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .product-title {
@@ -333,7 +341,8 @@
         .product-actions {
             display: flex;
             gap: 8px;
-            margin-top: 15px;
+            margin-top: auto;
+            padding-top: 15px;
         }
 
         .btn-view {
@@ -429,6 +438,10 @@
 
         .notification.error {
             background: #dc3545;
+        }
+
+        #fileInput {
+            display: none;
         }
 
         /* Responsive Design */
