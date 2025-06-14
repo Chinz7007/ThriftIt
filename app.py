@@ -1160,6 +1160,82 @@ def socket_status():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+@app.route('/admin/fix_image_columns')
+@login_required
+def fix_image_columns():
+    """
+    Fix database schema to support longer Cloudinary URLs
+    TEMPORARY ROUTE - Remove after running once
+    """
+    
+    # Security: Only allow specific users to run this (replace with your student ID)
+    if current_user.student_id not in ['admin', 'U2020001', '242FC243CW']:  # Add your student ID here
+        return "Unauthorized - Only admins can run database migrations", 403
+    
+    try:
+        print("🔧 Starting database schema migration...")
+        
+        # Update the image column to support longer URLs
+        with db.engine.connect() as connection:
+            
+            # For PostgreSQL - Update product table
+            print("📝 Updating product.image column...")
+            connection.execute(db.text("""
+                ALTER TABLE product 
+                ALTER COLUMN image TYPE VARCHAR(500);
+            """))
+            
+            # For PostgreSQL - Update user table  
+            print("📝 Updating user.profile_picture column...")
+            connection.execute(db.text("""
+                ALTER TABLE "user" 
+                ALTER COLUMN profile_picture TYPE VARCHAR(500);
+            """))
+            
+            # Commit the changes
+            connection.commit()
+            print("✅ Database schema migration completed!")
+        
+        return """
+        <h2>✅ Database Schema Updated Successfully!</h2>
+        <p><strong>Changes made:</strong></p>
+        <ul>
+            <li>product.image column: VARCHAR(100) → VARCHAR(500)</li>
+            <li>user.profile_picture column: VARCHAR(100) → VARCHAR(500)</li>
+        </ul>
+        <p><strong>What this fixes:</strong></p>
+        <ul>
+            <li>Cloudinary URLs can now be stored (they're ~117 characters)</li>
+            <li>Product uploads will work without "value too long" errors</li>
+            <li>Profile pictures can use full Cloudinary URLs</li>
+        </ul>
+        <p><strong>Next steps:</strong></p>
+        <ol>
+            <li>Try uploading a product with an image</li>
+            <li>Verify it works without errors</li>
+            <li>Remove this /admin/fix_image_columns route from app.py</li>
+        </ol>
+        <p><a href="/upload">→ Test Product Upload</a></p>
+        <p><a href="/">→ Back to Home</a></p>
+        """
+        
+    except Exception as e:
+        error_msg = str(e)
+        print(f"❌ Database migration failed: {error_msg}")
+        
+        return f"""
+        <h2>❌ Database Migration Failed</h2>
+        <p><strong>Error:</strong> {error_msg}</p>
+        <p><strong>Possible solutions:</strong></p>
+        <ul>
+            <li>Check if you're using PostgreSQL (this migration is for PostgreSQL)</li>
+            <li>Verify database permissions</li>
+            <li>Try again in a few minutes</li>
+        </ul>
+        <p><strong>Alternative:</strong> Update the models in app.py manually and redeploy</p>
+        <p><a href="/">→ Back to Home</a></p>
+        """
+
 # ============================================================================
 # ERROR HANDLERS
 # ============================================================================
