@@ -1,12 +1,13 @@
+<!DOCTYPE html>
 <html>
 <head>
     <title>ThriftIt - Upload</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style_upload.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
-
     {% include 'profile_header.html' %}
 
 <div class="upload-container">
@@ -51,7 +52,6 @@
                 <input type="radio" name="condition" value="Heavily Used" required>
                 Heavily Used
               </label>
-
             </div><br>
 
             <label>Item Title</label>
@@ -63,13 +63,22 @@
             <label>Price (RM)</label>
             <input type="text" name="price" required>
             
-            <div class="checkbox-area">
-                <input type="checkbox" name="multiple"> I have more than one of the same item
+            <!-- UPDATED: Repurpose multiple checkbox for rental availability -->
+            <div class="checkbox-area rental-checkbox">
+                <input type="checkbox" name="multiple" id="rentalCheckbox"> 
+                <label for="rentalCheckbox">
+                    <i class="fas fa-calendar-alt"></i>
+                    Also available for rental (students can contact me to rent this item)
+                </label>
+                <div class="rental-info">
+                    <small><i class="fas fa-info-circle"></i> Perfect for textbooks, equipment, or items students might need short-term!</small>
+                </div>
             </div>
 
             <button type="submit" class="submit-btn">List Now</button>
         </div>
     </form>
 </div>
+
 </body>
 </html>

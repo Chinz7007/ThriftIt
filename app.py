@@ -500,10 +500,11 @@ def upload():
             category = request.form.get("category", "").strip()
             condition = request.form.get("condition", "Unknown").strip()
             description = request.form.get("description", "").strip()
-            multiple = bool(request.form.get("multiple"))
+            # REPURPOSED: multiple checkbox now means "available for rental"
+            available_for_rental = bool(request.form.get("multiple"))
             image = request.files.get("image")
             
-            # Validate inputs
+            # Validate inputs (existing validation)
             if not name or len(name) > 100:
                 flash('Product name is required and must be less than 100 characters.', 'error')
                 return render_template("upload.html")
@@ -517,18 +518,17 @@ def upload():
                 flash('Please select a valid category.', 'error')
                 return render_template("upload.html")
             
-            # Validate file
+            # Validate file (existing validation)
             file_valid, file_msg = validate_file_upload(image)
             if not file_valid:
                 flash(file_msg, 'error')
                 return render_template("upload.html")
             
-            # Handle image upload - try Cloudinary first, fallback to local
+            # Handle image upload (existing code)
             image_url = None
             
             if os.environ.get('CLOUDINARY_CLOUD_NAME'):
                 try:
-                    # Upload to Cloudinary
                     upload_result = cloudinary.uploader.upload(
                         image,
                         folder="thriftit/products",
@@ -543,11 +543,9 @@ def upload():
                     
                 except Exception as e:
                     print(f"⚠️ Cloudinary upload failed: {str(e)}")
-                    # Fall back to local storage
                     image_url = None
             
             if not image_url:
-                # Fallback to local storage
                 filename = secure_filename(image.filename)
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
                 filename = timestamp + filename
@@ -555,21 +553,33 @@ def upload():
                 image_url = filename
                 print(f"📁 Image saved locally: {filename}")
             
-            # Create product
+            # Handle rental availability in description
+            # Since we're repurposing multiple_items field, we store rental info in description
+            final_description = description
+            if available_for_rental:
+                rental_note = "\n\n🏷️ RENTAL AVAILABLE: This item is also available for rental. Contact me to discuss rental terms and pricing!"
+                final_description = (description + rental_note)[:500]  # Keep within description limit
+            
+            # Create product - multiple_items now represents rental availability
             new_product = Product(
                 name=name,
                 price=price_result,
-                image=image_url,  # Now stores either Cloudinary URL or local filename
-                description=description[:500],  # Limit description length
+                image=image_url,
+                description=final_description,
                 category=category,
                 condition=condition,
-                multiple_items=multiple,
+                multiple_items=available_for_rental,  # REPURPOSED: now means "available for rental"
                 seller_id=current_user.id
             )
             
             db.session.add(new_product)
             db.session.commit()
-            flash('Product uploaded successfully!', 'success')
+            
+            if available_for_rental:
+                flash('Product uploaded successfully! Your item is now available for both purchase and rental.', 'success')
+            else:
+                flash('Product uploaded successfully!', 'success')
+                
             return redirect(url_for("products"))
             
         except Exception as e:

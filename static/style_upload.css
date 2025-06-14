@@ -79,3 +79,46 @@
         .submit-btn:hover {
             background-color: #007767;
         }
+
+        .rental-checkbox {
+        background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+        border: 2px solid #2196f3;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+    }
+    
+    .rental-checkbox label {
+        color: #1565c0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        margin: 0 0 10px 0;
+        font-size: 1rem;
+    }
+    
+    .rental-checkbox input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin: 0;
+        cursor: pointer;
+    }
+    
+    .rental-info {
+        margin-left: 30px;
+        background: rgba(255, 255, 255, 0.7);
+        padding: 10px;
+        border-radius: 8px;
+        border-left: 3px solid #2196f3;
+    }
+    
+    .rental-info small {
+        color: #1565c0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        line-height: 1.4;
+    }
