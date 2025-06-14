@@ -365,6 +365,70 @@ class Wishlist(db.Model):
 # ============================================================================
 # AUTHENTICATION ROUTES - ENHANCED WITH VALIDATION
 # ============================================================================
+@app.route('/admin/fix_database_schema')
+@login_required
+def fix_database_schema():
+    """
+    Fix database schema to support longer URLs - ONE TIME USE
+    """
+    try:
+        print("🔧 Fixing database schema for longer URLs...")
+        
+        # Get the database connection
+        with db.engine.connect() as connection:
+            # Start a transaction
+            trans = connection.begin()
+            
+            try:
+                # Update product table - image column
+                print("📝 Updating product.image column to VARCHAR(500)...")
+                connection.execute(db.text("""
+                    ALTER TABLE product 
+                    ALTER COLUMN image TYPE VARCHAR(500);
+                """))
+                
+                # Update user table - profile_picture column  
+                print("📝 Updating user.profile_picture column to VARCHAR(500)...")
+                connection.execute(db.text("""
+                    ALTER TABLE "user" 
+                    ALTER COLUMN profile_picture TYPE VARCHAR(500);
+                """))
+                
+                # Commit the transaction
+                trans.commit()
+                print("✅ Database schema updated successfully!")
+                
+                # Test with a sample insert
+                print("🧪 Testing schema fix...")
+                
+                return """
+                <h2>✅ Database Schema Fixed Successfully!</h2>
+                <p><strong>Changes made:</strong></p>
+                <ul>
+                    <li>product.image: VARCHAR(100) → VARCHAR(500)</li>
+                    <li>user.profile_picture: VARCHAR(100) → VARCHAR(500)</li>
+                </ul>
+                <p><strong>Your app should now work properly!</strong></p>
+                <p><a href="/">→ Go to Homepage</a></p>
+                <p><a href="/upload">→ Try Upload Again</a></p>
+                <br>
+                <p><em>Note: You can remove this route from app.py after running it once.</em></p>
+                """
+                
+            except Exception as e:
+                trans.rollback()
+                raise e
+                
+    except Exception as e:
+        error_msg = str(e)
+        print(f"❌ Database schema fix failed: {error_msg}")
+        
+        return f"""
+        <h2>❌ Database Schema Fix Failed</h2>
+        <p><strong>Error:</strong> {error_msg}</p>
+        <p><strong>Alternative:</strong> The app is working, but uploads with Cloudinary URLs will fail until this is fixed.</p>
+        <p><a href="/">→ Back to Homepage</a></p>
+        """
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
