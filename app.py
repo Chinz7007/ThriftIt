@@ -1160,82 +1160,6 @@ def socket_status():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-@app.route('/admin/fix_image_columns')
-@login_required
-def fix_image_columns():
-    """
-    Fix database schema to support longer Cloudinary URLs
-    TEMPORARY ROUTE - Remove after running once
-    """
-    
-    # Security: Only allow specific users to run this (replace with your student ID)
-    if current_user.student_id not in ['admin', 'U2020001', '242FC243CW']:  # Add your student ID here
-        return "Unauthorized - Only admins can run database migrations", 403
-    
-    try:
-        print("🔧 Starting database schema migration...")
-        
-        # Update the image column to support longer URLs
-        with db.engine.connect() as connection:
-            
-            # For PostgreSQL - Update product table
-            print("📝 Updating product.image column...")
-            connection.execute(db.text("""
-                ALTER TABLE product 
-                ALTER COLUMN image TYPE VARCHAR(500);
-            """))
-            
-            # For PostgreSQL - Update user table  
-            print("📝 Updating user.profile_picture column...")
-            connection.execute(db.text("""
-                ALTER TABLE "user" 
-                ALTER COLUMN profile_picture TYPE VARCHAR(500);
-            """))
-            
-            # Commit the changes
-            connection.commit()
-            print("✅ Database schema migration completed!")
-        
-        return """
-        <h2>✅ Database Schema Updated Successfully!</h2>
-        <p><strong>Changes made:</strong></p>
-        <ul>
-            <li>product.image column: VARCHAR(100) → VARCHAR(500)</li>
-            <li>user.profile_picture column: VARCHAR(100) → VARCHAR(500)</li>
-        </ul>
-        <p><strong>What this fixes:</strong></p>
-        <ul>
-            <li>Cloudinary URLs can now be stored (they're ~117 characters)</li>
-            <li>Product uploads will work without "value too long" errors</li>
-            <li>Profile pictures can use full Cloudinary URLs</li>
-        </ul>
-        <p><strong>Next steps:</strong></p>
-        <ol>
-            <li>Try uploading a product with an image</li>
-            <li>Verify it works without errors</li>
-            <li>Remove this /admin/fix_image_columns route from app.py</li>
-        </ol>
-        <p><a href="/upload">→ Test Product Upload</a></p>
-        <p><a href="/">→ Back to Home</a></p>
-        """
-        
-    except Exception as e:
-        error_msg = str(e)
-        print(f"❌ Database migration failed: {error_msg}")
-        
-        return f"""
-        <h2>❌ Database Migration Failed</h2>
-        <p><strong>Error:</strong> {error_msg}</p>
-        <p><strong>Possible solutions:</strong></p>
-        <ul>
-            <li>Check if you're using PostgreSQL (this migration is for PostgreSQL)</li>
-            <li>Verify database permissions</li>
-            <li>Try again in a few minutes</li>
-        </ul>
-        <p><strong>Alternative:</strong> Update the models in app.py manually and redeploy</p>
-        <p><a href="/">→ Back to Home</a></p>
-        """
-
 # ============================================================================
 # ERROR HANDLERS
 # ============================================================================
@@ -1288,86 +1212,7 @@ def log_socketio_config():
         print(f"   Socket.IO Version: installed")
 
 # ============================================================================
-# INITIALIZATION AND STARTUP
-# ============================================================================
-
-# Create database tables - Force recreation for schema changes
-with app.app_context():
-    try:
-        # Check if we need to recreate tables
-        from sqlalchemy import inspect
-        inspector = inspect(db.engine)
-        existing_tables = inspector.get_table_names()
-        
-        if not existing_tables:
-            print("🔄 Creating database tables (first time setup)...")
-            db.create_all()
-        else:
-            print("🔄 Database tables already exist, ensuring they're up to date...")
-            # Only create missing tables, don't drop existing ones
-            db.create_all()
-        
-        # Verify tables exist
-        tables = inspector.get_table_names()
-        print(f"📋 Available tables: {tables}")
-        
-        # Log table counts for verification
-        if tables:
-            user_count = db.session.query(User).count()
-            product_count = db.session.query(Product).count()
-            print(f"📊 Database stats: {user_count} users, {product_count} products")
-        
-        print("✓ Database initialization completed successfully")
-        
-    except Exception as e:
-        print(f"✗ Database initialization error: {str(e)}")
-        # Continue anyway - app might still work in some cases
-        import traceback
-        traceback.print_exc()
-
-# Call this after socketio initialization - FIXED VERSION
-log_socketio_config()
-
-# Validate security configuration on startup
-try:
-    validate_security_config()
-except Exception as e:
-    app.logger.error(f"Security validation failed: {str(e)}")
-    if not app.debug:
-        print(f"⚠️  Security validation warning: {str(e)}")
-
-# Configure logging for production
-if not app.debug:
-    # Create logs directory
-    logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
-    os.makedirs(logs_dir, exist_ok=True)
-    
-    # Set up file logging
-    from logging.handlers import RotatingFileHandler
-    file_handler = RotatingFileHandler(
-        os.path.join(logs_dir, 'thriftit.log'), 
-        maxBytes=10240000,  # 10MB
-        backupCount=10
-    )
-    file_handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-    ))
-    file_handler.setLevel(logging.INFO)
-    app.logger.addHandler(file_handler)
-    app.logger.setLevel(logging.INFO)
-    app.logger.info('ThriftIt startup - Production mode')
-
-# ============================================================================
-# PRODUCTION SERVER STARTUP
-# ============================================================================
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 5000))
-    print(f"🚀 Starting ThriftIt on port {port}")
-    socketio.run(app, host='0.0.0.0', port=port, debug=False)
-# ============================================================================
-# HEALTH CHECK ENDPOINT
+# HEALTH CHECK ENDPOINTS
 # ============================================================================
 
 @app.route('/health')
@@ -1375,7 +1220,7 @@ def health_check():
     """Health check endpoint for monitoring"""
     try:
         # Test database connection
-        db.session.execute('SELECT 1')
+        db.session.execute(db.text('SELECT 1'))
         
         # Test file system access
         upload_folder_exists = os.path.exists(app.config.get('UPLOAD_FOLDER', ''))
@@ -1403,10 +1248,6 @@ def health_check():
         }
         
         return jsonify(health_info), 500
-
-# ============================================================================
-# API STATUS ENDPOINT
-# ============================================================================
 
 @app.route('/api/status')
 def api_status():
@@ -1455,3 +1296,96 @@ def api_status():
         }
         
         return jsonify(error_info), 500
+
+# ============================================================================
+# INITIALIZATION AND STARTUP
+# ============================================================================
+
+def initialize_app():
+    """Initialize database and validate configuration"""
+    with app.app_context():
+        try:
+            # Check if we need to recreate tables
+            from sqlalchemy import inspect
+            inspector = inspect(db.engine)
+            existing_tables = inspector.get_table_names()
+            
+            if not existing_tables:
+                print("🔄 Creating database tables (first time setup)...")
+                db.create_all()
+            else:
+                print("🔄 Database tables already exist, ensuring they're up to date...")
+                # Only create missing tables, don't drop existing ones
+                db.create_all()
+            
+            # Verify tables exist
+            tables = inspector.get_table_names()
+            print(f"📋 Available tables: {tables}")
+            
+            # Log table counts for verification
+            if tables:
+                user_count = db.session.query(User).count()
+                product_count = db.session.query(Product).count()
+                print(f"📊 Database stats: {user_count} users, {product_count} products")
+            
+            print("✓ Database initialization completed successfully")
+            
+        except Exception as e:
+            print(f"✗ Database initialization error: {str(e)}")
+            # Continue anyway - app might still work in some cases
+            import traceback
+            traceback.print_exc()
+
+    # Validate security configuration
+    try:
+        validate_security_config()
+    except Exception as e:
+        app.logger.error(f"Security validation failed: {str(e)}")
+        if not app.debug:
+            print(f"⚠️  Security validation warning: {str(e)}")
+
+    # Log SocketIO configuration
+    log_socketio_config()
+
+# Configure logging for production
+if not app.debug:
+    # Create logs directory
+    logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
+    os.makedirs(logs_dir, exist_ok=True)
+    
+    # Set up file logging
+    from logging.handlers import RotatingFileHandler
+    file_handler = RotatingFileHandler(
+        os.path.join(logs_dir, 'thriftit.log'), 
+        maxBytes=10240000,  # 10MB
+        backupCount=10
+    )
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    ))
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO)
+    app.logger.info('ThriftIt startup - Production mode')
+
+# ============================================================================
+# MAIN EXECUTION - THIS MUST BE AT THE VERY END
+# ============================================================================
+
+if __name__ == "__main__":
+    # Initialize everything first
+    initialize_app()
+    
+    # Get port from environment
+    port = int(os.environ.get('PORT', 5000))
+    print(f"🚀 Starting ThriftIt on port {port}")
+    print(f"🌐 Environment: {os.environ.get('FLASK_ENV', 'development')}")
+    
+    # Start the server - THIS MUST BE THE LAST LINE
+    socketio.run(
+        app, 
+        host='0.0.0.0', 
+        port=port, 
+        debug=False,
+        allow_unsafe_werkzeug=True  # Allow in production for Render
+    )
