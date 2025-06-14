@@ -4,140 +4,166 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile - ThriftIt</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style_profile.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style_wishlist.css') }}">
+      <link rel="stylesheet" href="{{ url_for('static', filename='style_profile.css') }}">
+
 </head>
 <body>
-    {% include 'profile_header.html' %}
-    
     <div class="profile-container">
+        <!-- Profile Header -->
         <div class="profile-header">
             <div class="profile-picture-container">
-                <!-- UPDATED: Handle both Cloudinary URLs and local files -->
-                {% set profile_pic = current_user.get_profile_picture() %}
-                {% if profile_pic.startswith('http') %}
-                    <img src="{{ profile_pic }}" alt="Profile Picture" class="profile-picture" id="profilePicture">
-                {% else %}
-                    <img src="{{ url_for('uploads', filename=profile_pic) }}" alt="Profile Picture" class="profile-picture" id="profilePicture">
-                {% endif %}
+                <img src="https://via.placeholder.com/120x120/007bff/white?text=JD" alt="Profile Picture" class="profile-picture" id="profilePicture">
                 <button class="change-picture-btn" onclick="document.getElementById('fileInput').click()">
                     <i class="fas fa-camera"></i>
                 </button>
-                <input type="file" id="fileInput" accept="image/*" onchange="uploadProfilePicture()">
+                <input type="file" id="fileInput" accept="image/*" onchange="uploadProfilePicture()" style="display: none;">
             </div>
-            <h1>{{ current_user.get_display_name() }}</h1>
-            <p>{{ current_user.student_id }} • {{ current_user.student_email }}</p>
+            <h1>John Doe</h1>
+            <p>U2020001 • john.doe@university.edu</p>
         </div>
         
-        <div class="profile-info">
-            <h3>Profile Information</h3>
-            <div class="info-item">
-                <span class="info-label">Full Name:</span>
-                <span class="info-value">{{ current_user.full_name or 'Not set' }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Student ID:</span>
-                <span class="info-value">{{ current_user.student_id }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Email:</span>
-                <span class="info-value">{{ current_user.student_email }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Products Listed:</span>
-                <span class="info-value">{{ current_user.products|length }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Member Since:</span>
-                <span class="info-value">User #{{ current_user.id }}</span>
+        <!-- Personal Details Section -->
+        <div class="personal-details">
+            <h3><i class="fas fa-user"></i> Personal Information</h3>
+            <div class="info-grid">
+                <div>
+                    <div class="info-item">
+                        <span class="info-label">
+                            <i class="fas fa-user"></i> Full Name:
+                        </span>
+                        <span class="info-value">John Doe</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">
+                            <i class="fas fa-id-badge"></i> Student ID:
+                        </span>
+                        <span class="info-value">U2020001</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">
+                            <i class="fas fa-envelope"></i> Email:
+                        </span>
+                        <span class="info-value">john.doe@university.edu</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="info-item">
+                        <span class="info-label">
+                            <i class="fas fa-box"></i> Products Listed:
+                        </span>
+                        <span class="info-value">2</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">
+                            <i class="fas fa-calendar"></i> Member Since:
+                        </span>
+                        <span class="info-value">User #1</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">
+                            <i class="fas fa-shield-alt"></i> Status:
+                        </span>
+                        <span class="info-value">Active Member</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- NEW: My Products Section -->
+        <!-- My Products Section -->
         <div class="my-products-section">
             <div class="section-header">
-                <h3><i class="fas fa-box"></i> My Products ({{ current_user.products|length }})</h3>
-                <a href="{{ url_for('upload') }}" class="btn btn-primary btn-small">
+                <h3><i class="fas fa-box"></i> My Products (2)</h3>
+                <a href="/upload" class="btn btn-primary btn-small">
                     <i class="fas fa-plus"></i> List New Item
                 </a>
             </div>
 
-            {% if current_user.products %}
-                <div class="products-grid">
-                    {% for product in current_user.products %}
-                    <div class="product-card">
-                        <div class="product-image">
-                            <a href="{{ url_for('product_detail', product_id=product.id) }}">
-                                {% if product.image.startswith('http') %}
-                                    <img src="{{ product.image }}" alt="{{ product.name }}">
-                                {% else %}
-                                    <img src="{{ url_for('uploads', filename=product.image) }}" alt="{{ product.name }}">
-                                {% endif %}
+            <!-- Horizontal Products Grid -->
+            <div class="products-grid">
+                <!-- Product 1 -->
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://via.placeholder.com/280x200/dc3545/white?text=Puma+Shoes" alt="Puma Shanks One Piece">
+                        <div class="product-status">
+                            <span class="status-badge active">Active</span>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h4 class="product-title">
+                            <a href="/product/1">Puma Shanks One Piece</a>
+                        </h4>
+                        <div class="product-meta">
+                            <div class="product-price">RM400.00</div>
+                            <div class="product-category">
+                                <i class="fas fa-tag"></i> Clothes
+                            </div>
+                        </div>
+                        <div class="product-condition">
+                            <i class="fas fa-info-circle"></i> Like New
+                        </div>
+                        <div class="product-actions">
+                            <a href="/product/1" class="btn-view">
+                                <i class="fas fa-eye"></i> View
                             </a>
-                            <div class="product-status">
-                                <span class="status-badge active">Active</span>
-                            </div>
-                        </div>
-                        <div class="product-info">
-                            <h4 class="product-title">
-                                <a href="{{ url_for('product_detail', product_id=product.id) }}">{{ product.name }}</a>
-                            </h4>
-                            <div class="product-meta">
-                                <div class="product-price">RM{{ "%.2f"|format(product.price) }}</div>
-                                <div class="product-category">
-                                    <i class="fas fa-tag"></i> {{ product.category }}
-                                </div>
-                            </div>
-                            <div class="product-condition">
-                                <i class="fas fa-info-circle"></i> {{ product.condition }}
-                            </div>
-                            {% if product.multiple_items %}
-                                <div class="rental-available">
-                                    <i class="fas fa-calendar-alt"></i> Rental Available
-                                </div>
-                            {% endif %}
-                            <div class="product-actions">
-                                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-view">
-                                    <i class="fas fa-eye"></i> View
-                                </a>
-                                <button class="btn btn-edit" onclick="editProduct({{ product.id }})">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <button class="btn btn-delete" onclick="deleteProduct({{ product.id }}, '{{ product.name }}')">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </div>
+                            <button class="btn-delete" onclick="deleteProduct(1, 'Puma Shanks One Piece')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
-            {% else %}
-                <div class="no-products">
-                    <div class="no-products-icon">
-                        <i class="fas fa-box-open"></i>
+
+                <!-- Product 2 -->
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://via.placeholder.com/280x200/007bff/white?text=LA+Cap" alt="New Era LA Cap">
+                        <div class="product-status">
+                            <span class="status-badge active">Active</span>
+                        </div>
                     </div>
-                    <h4>No Products Listed Yet</h4>
-                    <p>You haven't listed any products for sale. Start earning by selling items you no longer need!</p>
-                    <a href="{{ url_for('upload') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> List Your First Item
-                    </a>
+                    <div class="product-info">
+                        <h4 class="product-title">
+                            <a href="/product/2">New Era LA Cap</a>
+                        </h4>
+                        <div class="product-meta">
+                            <div class="product-price">RM200.00</div>
+                            <div class="product-category">
+                                <i class="fas fa-tag"></i> Clothes
+                            </div>
+                        </div>
+                        <div class="product-condition">
+                            <i class="fas fa-info-circle"></i> Like New
+                        </div>
+                        <div class="rental-available">
+                            <i class="fas fa-calendar-alt"></i> Rental Available
+                        </div>
+                        <div class="product-actions">
+                            <a href="/product/2" class="btn-view">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            <button class="btn-delete" onclick="deleteProduct(2, 'New Era LA Cap')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            {% endif %}
+            </div>
         </div>
-        
-        <div style="text-align: center; margin-top: 30px;">
-            <a href="{{ url_for('edit_profile') }}" class="btn btn-primary">
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="/edit_profile" class="btn btn-primary">
                 <i class="fas fa-edit"></i> Edit Profile
             </a>
-            <a href="{{ url_for('products') }}" class="btn btn-secondary">
+            <a href="/products" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Products
             </a>
         </div>
     </div>
 
+    <!-- Notification -->
     <div class="notification" id="notification"></div>
 
-    <script src="{{ url_for('static', filename='script_profile.js') }}"></script>
-
+<script src="{{ url_for('static', filename='script_profile.js') }}"></script>
+</body>
 </html>
