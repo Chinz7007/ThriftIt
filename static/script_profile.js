@@ -45,4 +45,48 @@
                 notification.classList.remove('show');
             }, 3000);
         }
- 
+
+
+function editProduct(productId) {
+            // For now, redirect to a product edit page (you'll need to create this)
+            // Or show a modal for editing
+            alert('Edit functionality coming soon! Product ID: ' + productId);
+        }
+
+        function deleteProduct(productId, productName) {
+            if (confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+                fetch(`/api/products/delete/${productId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        // Remove the product card from the DOM
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error deleting product', 'error');
+                });
+            }
+        }
+
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }

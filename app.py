@@ -435,6 +435,7 @@ def register():
 @login_required
 def logout():
     logout_user()
+    session.pop('_flashes', None)
     flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
 
@@ -625,6 +626,44 @@ def product_detail(product_id):
         app.logger.error(f"Product detail error: {str(e)}")
         flash('Error loading product details.', 'error')
         return redirect(url_for('products'))
+    
+@app.route('/api/products/delete/<int:product_id>', methods=['DELETE'])
+@login_required
+def delete_product(product_id):
+    """API endpoint to delete a user's product"""
+    try:
+        # Get the product
+        product = Product.query.get_or_404(product_id)
+        
+        # Check if the current user owns this product
+        if product.seller_id != current_user.id:
+            return jsonify({
+                'success': False, 
+                'message': 'You can only delete your own products'
+            }), 403
+        
+        # Remove from wishlists first (to avoid foreign key constraints)
+        Wishlist.query.filter_by(product_id=product_id).delete()
+        
+        # Store product name for success message
+        product_name = product.name
+        
+        # Delete the product
+        db.session.delete(product)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'"{product_name}" has been deleted successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error deleting product {product_id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': 'Error deleting product. Please try again.'
+        }), 500
 
 @app.route("/chat_with_seller/<int:product_id>")
 @login_required

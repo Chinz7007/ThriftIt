@@ -53,8 +53,80 @@
                 <span class="info-value">User #{{ current_user.id }}</span>
             </div>
         </div>
+
+        <!-- NEW: My Products Section -->
+        <div class="my-products-section">
+            <div class="section-header">
+                <h3><i class="fas fa-box"></i> My Products ({{ current_user.products|length }})</h3>
+                <a href="{{ url_for('upload') }}" class="btn btn-primary btn-small">
+                    <i class="fas fa-plus"></i> List New Item
+                </a>
+            </div>
+
+            {% if current_user.products %}
+                <div class="products-grid">
+                    {% for product in current_user.products %}
+                    <div class="product-card">
+                        <div class="product-image">
+                            <a href="{{ url_for('product_detail', product_id=product.id) }}">
+                                {% if product.image.startswith('http') %}
+                                    <img src="{{ product.image }}" alt="{{ product.name }}">
+                                {% else %}
+                                    <img src="{{ url_for('uploads', filename=product.image) }}" alt="{{ product.name }}">
+                                {% endif %}
+                            </a>
+                            <div class="product-status">
+                                <span class="status-badge active">Active</span>
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <h4 class="product-title">
+                                <a href="{{ url_for('product_detail', product_id=product.id) }}">{{ product.name }}</a>
+                            </h4>
+                            <div class="product-meta">
+                                <div class="product-price">RM{{ "%.2f"|format(product.price) }}</div>
+                                <div class="product-category">
+                                    <i class="fas fa-tag"></i> {{ product.category }}
+                                </div>
+                            </div>
+                            <div class="product-condition">
+                                <i class="fas fa-info-circle"></i> {{ product.condition }}
+                            </div>
+                            {% if product.multiple_items %}
+                                <div class="rental-available">
+                                    <i class="fas fa-calendar-alt"></i> Rental Available
+                                </div>
+                            {% endif %}
+                            <div class="product-actions">
+                                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-view">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                <button class="btn btn-edit" onclick="editProduct({{ product.id }})">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-delete" onclick="deleteProduct({{ product.id }}, '{{ product.name }}')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-products">
+                    <div class="no-products-icon">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <h4>No Products Listed Yet</h4>
+                    <p>You haven't listed any products for sale. Start earning by selling items you no longer need!</p>
+                    <a href="{{ url_for('upload') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> List Your First Item
+                    </a>
+                </div>
+            {% endif %}
+        </div>
         
-        <div style="text-align: center;">
+        <div style="text-align: center; margin-top: 30px;">
             <a href="{{ url_for('edit_profile') }}" class="btn btn-primary">
                 <i class="fas fa-edit"></i> Edit Profile
             </a>
@@ -66,6 +138,6 @@
 
     <div class="notification" id="notification"></div>
 
-     <script src="{{ url_for('static', filename='script_wishlist.js') }}"></script>
-</body>
+    <script src="{{ url_for('static', filename='script_profile.js') }}"></script>
+
 </html>

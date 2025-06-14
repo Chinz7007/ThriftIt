@@ -7,6 +7,7 @@
 
     <!-- Link to external CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style_product_detail.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     {% include 'profile_header.html' %}
@@ -22,7 +23,7 @@
                 </span>
             </div>
 
-            <!-- UPDATED: Handle both Cloudinary URLs and local files -->
+            <!-- Product Image -->
             {% if product.image.startswith('http') %}
                 <img src="{{ product.image }}" alt="{{ product.name }}">
             {% else %}
@@ -30,45 +31,108 @@
             {% endif %}
             
             <h1>{{ product.name }}</h1>
-            <div class="price"><strong>Price:</strong> RM{{ "%.2f"|format(product.price) }}</div>
+            
+            <!-- Enhanced price section with rental detection using multiple_items field -->
+            <div class="price-section">
+                <div class="sale-price">
+                    <i class="fas fa-tag"></i>
+                    <strong>Sale Price:</strong> RM{{ "%.2f"|format(product.price) }}
+                </div>
+                
+                <!-- Check rental availability using multiple_items field -->
+                {% if product.multiple_items %}
+                <div class="rental-info">
+                    <div class="rental-badge">
+                        <i class="fas fa-calendar-alt"></i>
+                        Also available for rental - Contact seller for details
+                    </div>
+                    <div class="rental-benefits">
+                        <i class="fas fa-lightbulb"></i>
+                        <small>Great for short-term use, textbooks, or trying before buying!</small>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
 
             <div class="buttons">
                 {% if product.seller_id == current_user.id %}
-                    <span class="button disabled">Your Product</span>
+                    <span class="button disabled">
+                        <i class="fas fa-user"></i> Your Product
+                    </span>
                 {% else %}
-                    <a href="{{ url_for('chat_with_seller', product_id=product.id) }}" class="button">Chat with Seller</a>
+                    <a href="{{ url_for('chat_with_seller', product_id=product.id) }}" class="button buy-button">
+                        <i class="fas fa-comments"></i> Contact Seller
+                    </a>
                 {% endif %}
             </div>
 
             <div class="details">
-                <h2>Details</h2>
-                <div class="detail-item"><strong>Condition:</strong> {{ product.condition }}</div>
-                <div class="detail-item"><strong>Description:</strong> {{ product.description }}</div>
-                <div class="detail-item"><strong>Seller:</strong> {{ product.seller.student_id }}</div>
+                <h2><i class="fas fa-info-circle"></i> Details</h2>
+                <div class="detail-item">
+                    <strong><i class="fas fa-star"></i> Condition:</strong> {{ product.condition }}
+                </div>
+                
+                <!-- Clean up description display - remove rental note for display -->
+                <div class="detail-item">
+                    <strong><i class="fas fa-align-left"></i> Description:</strong> 
+                    {% if product.description %}
+                        {% set clean_description = product.description.split('🏷️ RENTAL AVAILABLE')[0].strip() %}
+                        {{ clean_description if clean_description else 'No description provided.' }}
+                    {% else %}
+                        No description provided.
+                    {% endif %}
+                </div>
+                
+                <div class="detail-item">
+                    <strong><i class="fas fa-user"></i> Seller:</strong> {{ product.seller.student_id }}
+                </div>
+                
+                <div class="detail-item">
+                    <strong><i class="fas fa-shopping-cart"></i> Available for:</strong> 
+                    <span class="availability-options">
+                        {% if product.multiple_items %}
+                            <span class="tag purchase">Purchase</span>
+                            <span class="tag rental">Rental</span>
+                        {% else %}
+                            <span class="tag purchase">Purchase Only</span>
+                        {% endif %}
+                    </span>
+                </div>
             </div>
 
-            <a class="back-link" href="{{ url_for('products') }}">← Back to Products</a>
+            <a class="back-link" href="{{ url_for('products') }}">
+                <i class="fas fa-arrow-left"></i> Back to Products
+            </a>
         </div>
 
         <div class="recent-box">
-            <h3>Recently Added</h3>
+            <h3><i class="fas fa-clock"></i> Recently Added</h3>
             {% for item in recent_products %}
             {% if item.id != product.id %}
             <div class="recent-item">
-                <!-- UPDATED: Handle both Cloudinary URLs and local files -->
                 {% if item.image.startswith('http') %}
                     <img src="{{ item.image }}" alt="{{ item.name }}">
                 {% else %}
                     <img src="{{ url_for('uploads', filename=item.image) }}" alt="{{ item.name }}">
                 {% endif %}
-                <a href="{{ url_for('product_detail', product_id=item.id) }}">{{ item.name }}</a>
+                <div class="recent-info">
+                    <a href="{{ url_for('product_detail', product_id=item.id) }}">{{ item.name }}</a>
+                    <div class="recent-price">
+                        <i class="fas fa-tag"></i> RM{{ "%.2f"|format(item.price) }}
+                    </div>
+                    {% if item.multiple_items %}
+                        <div class="recent-rental">
+                            <i class="fas fa-calendar-alt"></i> Also for rent
+                        </div>
+                    {% endif %}
+                </div>
             </div>
             {% endif %}
             {% endfor %}
         </div>
     </div>
 
-    <!-- Link to external JavaScript -->
     <script src="{{ url_for('static', filename='script_product_detail.js') }}"></script>
+
 </body>
 </html>

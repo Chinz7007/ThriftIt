@@ -176,3 +176,26 @@
 
         // Initialize wishlist on page load
         document.addEventListener('DOMContentLoaded', initializeWishlist);
+
+         function contactSeller(productId, sellerId) {
+            if (!sellerId) {
+                showNotification('Seller information not available', 'error');
+                return;
+            }
+            
+            // Check if user is trying to contact themselves
+            if (sellerId === getCurrentUserId()) {
+                showNotification('This is your own product!', 'error');
+                return;
+            }
+            
+            // Redirect to chat with seller
+            window.location.href = `/chat_with_seller/${productId}`;
+        }
+        
+        // Helper function to get current user ID (you may need to implement this)
+        function getCurrentUserId() {
+            // You can get this from a meta tag, global variable, or other method
+            const userMeta = document.querySelector('meta[name="current-user-id"]');
+            return userMeta ? parseInt(userMeta.content) : null;
+        }

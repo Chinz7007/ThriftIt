@@ -10,11 +10,17 @@
 </head>
 <body>
 
-    {% with msgs = get_flashed_messages(with_categories=true) %}
-    {% if msgs %}
+   {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
       <div class="flash-container">
-        {% for category, text in msgs %}
-          <div class="flash {{ category }}">{{ text }}</div>
+        {% for category, message in messages %}
+          <!-- FIXED: Only show the most recent message for each category -->
+          {% if loop.last or category != messages[loop.index].0 %}
+          <div class="flash {{ category }}" id="flash-{{ loop.index }}">
+            {{ message }}
+            <button type="button" class="flash-close" onclick="closeFlash('flash-{{ loop.index }}')">&times;</button>
+          </div>
+          {% endif %}
         {% endfor %}
       </div>
     {% endif %}
