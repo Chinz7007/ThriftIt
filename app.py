@@ -1361,55 +1361,11 @@ if not app.debug:
 # PRODUCTION SERVER STARTUP
 # ============================================================================
 
-def run_production_server():
-    """Run production server with appropriate configuration"""
-    port = int(os.environ.get('PORT', 5000))
-    
-    print("🚀 ThriftIt production server starting...")
-    print(f"   Environment: {os.environ.get('FLASK_ENV', 'default')}")
-    print(f"   Socket.IO Async Mode: {socketio.async_mode}")
-    print(f"   Port: {port}")
-    print(f"   Eventlet Available: {eventlet_available}")
-    print(f"   Cloudinary: {'✅ Configured' if os.environ.get('CLOUDINARY_CLOUD_NAME') else '❌ Not configured'}")
-    
-    # Use different startup methods based on async mode and eventlet availability
-    if socketio.async_mode == 'eventlet' and eventlet_available:
-        print("🔧 Starting with eventlet.wsgi server...")
-        try:
-            import eventlet.wsgi
-            import eventlet
-            
-            # Create eventlet socket
-            listener = eventlet.listen(('0.0.0.0', port))
-            
-            # Start the WSGI server
-            eventlet.wsgi.server(listener, app, log_output=False)
-            
-        except Exception as e:
-            print(f"⚠️  Eventlet server failed: {e}")
-            print("🔧 Falling back to socketio.run...")
-            socketio.run(app, host='0.0.0.0', port=port, debug=False)
-    
-    elif socketio.async_mode == 'gevent':
-        print("🔧 Starting with gevent mode...")
-        socketio.run(app, host='0.0.0.0', port=port, debug=False)
-    
-    else:
-        print("🔧 Starting with threading mode...")
-        socketio.run(app, host='0.0.0.0', port=port, debug=False)
 
 if __name__ == "__main__":
-    # This shouldn't run on Render, but just in case
     port = int(os.environ.get('PORT', 5000))
+    print(f"🚀 Starting ThriftIt on port {port}")
     socketio.run(app, host='0.0.0.0', port=port, debug=False)
-else:
-    # This runs on Render with Gunicorn
-    application = app
-    
-    # Simple logging for production
-    print("🔧 Application loaded for Gunicorn")
-    print(f"   Socket.IO Async Mode: {socketio.async_mode}")
-    print(f"   Cloudinary: {'✅ Configured' if os.environ.get('CLOUDINARY_CLOUD_NAME') else '❌ Not configured'}")
 # ============================================================================
 # HEALTH CHECK ENDPOINT
 # ============================================================================
