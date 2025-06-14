@@ -24,7 +24,13 @@
                 <a href="{{ url_for('wishlist') }}">Wishlist</a>
                 <a href="{{ url_for('upload') }}" class="btn-sell">Sell</a>
                 <div class="user-menu" onclick="toggleMenu()">
-                    <img src="{{ url_for('uploads', filename=current_user.get_profile_picture()) }}" alt="Profile" class="profile-pic">
+                    <!-- UPDATED: Handle both Cloudinary URLs and local files -->
+                    {% set profile_pic = current_user.get_profile_picture() %}
+                    {% if profile_pic.startswith('http') %}
+                        <img src="{{ profile_pic }}" alt="Profile" class="profile-pic">
+                    {% else %}
+                        <img src="{{ url_for('uploads', filename=profile_pic) }}" alt="Profile" class="profile-pic">
+                    {% endif %}
                     <span>{{ current_user.get_display_name() }}</span>
                     <i class="fas fa-chevron-down"></i>
                 </div>
@@ -32,7 +38,13 @@
                 <!-- Dropdown menu -->
                 <div class="dropdown-menu" id="dropdownMenu">
                     <div class="dropdown-header">
-                        <img src="{{ url_for('uploads', filename=current_user.get_profile_picture()) }}" alt="Profile">
+                        <!-- UPDATED: Handle both Cloudinary URLs and local files -->
+                        {% set profile_pic = current_user.get_profile_picture() %}
+                        {% if profile_pic.startswith('http') %}
+                            <img src="{{ profile_pic }}" alt="Profile">
+                        {% else %}
+                            <img src="{{ url_for('uploads', filename=profile_pic) }}" alt="Profile">
+                        {% endif %}
                         <div class="user-info">
                             <h3>{{ current_user.get_display_name() }}</h3>
                             <p>{{ current_user.student_id }}</p>

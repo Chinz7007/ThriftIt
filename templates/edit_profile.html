@@ -14,10 +14,13 @@
     <h1>Edit Profile</h1>
     <form method="POST" enctype="multipart/form-data">
       <div class="profile-picture-upload">
-        <img id="currentPicture"
-             src="{{ url_for('uploads', filename=current_user.get_profile_picture()) }}"
-             alt="Current Profile Picture"
-             class="current-picture"/>
+        <!-- UPDATED: Handle both Cloudinary URLs and local files -->
+        {% set profile_pic = current_user.get_profile_picture() %}
+        {% if profile_pic.startswith('http') %}
+            <img id="currentPicture" src="{{ profile_pic }}" alt="Current Profile Picture" class="current-picture"/>
+        {% else %}
+            <img id="currentPicture" src="{{ url_for('uploads', filename=profile_pic) }}" alt="Current Profile Picture" class="current-picture"/>
+        {% endif %}
         <button type="button" class="upload-btn" onclick="document.getElementById('fileInput').click()">
           <i class="fas fa-camera"></i> Change Profile Picture
         </button>

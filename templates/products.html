@@ -21,7 +21,12 @@
           <article class="product-card">
             <a href="{{ url_for('product_detail', product_id=product.id) }}">
               <figure>
-                <img src="{{ url_for('uploads', filename=product.image) }}" alt="{{ product.name }}">
+                <!-- UPDATED: Handle both Cloudinary URLs and local files -->
+                {% if product.image.startswith('http') %}
+                    <img src="{{ product.image }}" alt="{{ product.name }}">
+                {% else %}
+                    <img src="{{ url_for('uploads', filename=product.image) }}" alt="{{ product.name }}">
+                {% endif %}
               </figure>
               <div class="product-info">
                 <h2 class="product-name">{{ product.name }}</h2>

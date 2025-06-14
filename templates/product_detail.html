@@ -22,7 +22,13 @@
                 </span>
             </div>
 
-            <img src="{{ url_for('uploads', filename=product.image) }}" alt="{{ product.name }}">
+            <!-- UPDATED: Handle both Cloudinary URLs and local files -->
+            {% if product.image.startswith('http') %}
+                <img src="{{ product.image }}" alt="{{ product.name }}">
+            {% else %}
+                <img src="{{ url_for('uploads', filename=product.image) }}" alt="{{ product.name }}">
+            {% endif %}
+            
             <h1>{{ product.name }}</h1>
             <div class="price"><strong>Price:</strong> RM{{ "%.2f"|format(product.price) }}</div>
 
@@ -49,7 +55,12 @@
             {% for item in recent_products %}
             {% if item.id != product.id %}
             <div class="recent-item">
-                <img src="{{ url_for('uploads', filename=item.image) }}" alt="{{ item.name }}">
+                <!-- UPDATED: Handle both Cloudinary URLs and local files -->
+                {% if item.image.startswith('http') %}
+                    <img src="{{ item.image }}" alt="{{ item.name }}">
+                {% else %}
+                    <img src="{{ url_for('uploads', filename=item.image) }}" alt="{{ item.name }}">
+                {% endif %}
                 <a href="{{ url_for('product_detail', product_id=item.id) }}">{{ item.name }}</a>
             </div>
             {% endif %}

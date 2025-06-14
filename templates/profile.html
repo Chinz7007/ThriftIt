@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile - ThriftIt</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style_profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style_wishlist.css') }}">
 </head>
@@ -14,8 +14,13 @@
     <div class="profile-container">
         <div class="profile-header">
             <div class="profile-picture-container">
-                <img src="{{ url_for('uploads', filename=current_user.get_profile_picture()) }}" 
-                     alt="Profile Picture" class="profile-picture" id="profilePicture">
+                <!-- UPDATED: Handle both Cloudinary URLs and local files -->
+                {% set profile_pic = current_user.get_profile_picture() %}
+                {% if profile_pic.startswith('http') %}
+                    <img src="{{ profile_pic }}" alt="Profile Picture" class="profile-picture" id="profilePicture">
+                {% else %}
+                    <img src="{{ url_for('uploads', filename=profile_pic) }}" alt="Profile Picture" class="profile-picture" id="profilePicture">
+                {% endif %}
                 <button class="change-picture-btn" onclick="document.getElementById('fileInput').click()">
                     <i class="fas fa-camera"></i>
                 </button>

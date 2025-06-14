@@ -61,7 +61,12 @@
             {% for item in featured_items %}
             <a href="{{ url_for('product_detail', product_id=item.id) }}" class="item-card">
                 <div class="item-image">
-                    <img src="{{ url_for('uploads', filename=item.image) }}" alt="{{ item.name }}">
+                    <!-- UPDATED: Handle both Cloudinary URLs and local files -->
+                    {% if item.image.startswith('http') %}
+                        <img src="{{ item.image }}" alt="{{ item.name }}">
+                    {% else %}
+                        <img src="{{ url_for('uploads', filename=item.image) }}" alt="{{ item.name }}">
+                    {% endif %}
                 </div>
                 <div class="item-details">
                     <div class="item-title">{{ item.name }}</div>

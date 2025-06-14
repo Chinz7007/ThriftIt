@@ -31,3 +31,7 @@ Pillow>=10.0.1  # For image validation and processing
 # flask-debugtoolbar==0.13.1
 # pytest==7.4.2
 # pytest-flask==1.2.0
+
+
+#For cloud images connection
+cloudinary>=1.36.0

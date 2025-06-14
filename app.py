@@ -36,6 +36,11 @@ from datetime import datetime, timedelta
 import secrets
 import logging
 
+# Cloudinary imports
+import cloudinary
+import cloudinary.uploader
+import cloudinary.utils
+
 # Load environment variables
 try:
     from dotenv import load_dotenv
@@ -93,6 +98,23 @@ else:
 
 # Create the upload directory
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+# ============================================================================
+# CLOUDINARY CONFIGURATION
+# ============================================================================
+
+# Configure Cloudinary
+if os.environ.get('CLOUDINARY_CLOUD_NAME'):
+    cloudinary.config(
+        cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
+        api_key=os.environ.get('CLOUDINARY_API_KEY'),
+        api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
+        secure=True
+    )
+    print("✅ Cloudinary configured successfully")
+    print(f"   Cloud Name: {os.environ.get('CLOUDINARY_CLOUD_NAME')}")
+else:
+    print("⚠️ Cloudinary credentials not found, using local storage")
 
 # ============================================================================
 # SOCKET.IO CONFIGURATION WITH IMPROVED ERROR HANDLING
@@ -286,7 +308,7 @@ class Product(db.Model):
     id             = db.Column(db.Integer, primary_key=True)
     name           = db.Column(db.String(100), nullable=False)
     price          = db.Column(db.Float, nullable=False)
-    image          = db.Column(db.String(100), nullable=False)
+    image          = db.Column(db.String(500), nullable=False)  # Increased length for URLs
     description    = db.Column(db.Text, nullable=True)
     category       = db.Column(db.String(50), nullable=False)
     condition      = db.Column(db.String(50), nullable=False)
@@ -302,7 +324,7 @@ class User(db.Model, UserMixin):
     student_email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)  # Increased from 128 to 255
     full_name     = db.Column(db.String(100), nullable=True)
-    profile_picture = db.Column(db.String(100), nullable=True, default='default-avatar.png')
+    profile_picture = db.Column(db.String(500), nullable=True, default='default-avatar.png')  # Increased for URLs
     messages_sent     = db.relationship('Message', foreign_keys='Message.sender_id', backref='sender', lazy='dynamic')
     messages_received = db.relationship('Message', foreign_keys='Message.receiver_id', backref='receiver', lazy='dynamic')
 
@@ -502,19 +524,43 @@ def upload():
                 flash(file_msg, 'error')
                 return render_template("upload.html")
             
-            # Process file upload
-            filename = secure_filename(image.filename)
-            # Add timestamp to prevent conflicts
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
-            filename = timestamp + filename
+            # Handle image upload - try Cloudinary first, fallback to local
+            image_url = None
             
-            image.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            if os.environ.get('CLOUDINARY_CLOUD_NAME'):
+                try:
+                    # Upload to Cloudinary
+                    upload_result = cloudinary.uploader.upload(
+                        image,
+                        folder="thriftit/products",
+                        transformation=[
+                            {"width": 800, "height": 600, "crop": "limit"},
+                            {"quality": "auto:good"}
+                        ],
+                        resource_type="image"
+                    )
+                    image_url = upload_result['secure_url']
+                    print(f"✅ Image uploaded to Cloudinary: {image_url}")
+                    
+                except Exception as e:
+                    print(f"⚠️ Cloudinary upload failed: {str(e)}")
+                    # Fall back to local storage
+                    image_url = None
+            
+            if not image_url:
+                # Fallback to local storage
+                filename = secure_filename(image.filename)
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+                filename = timestamp + filename
+                image.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+                image_url = filename
+                print(f"📁 Image saved locally: {filename}")
             
             # Create product
             new_product = Product(
                 name=name,
                 price=price_result,
-                image=filename,
+                image=image_url,  # Now stores either Cloudinary URL or local filename
                 description=description[:500],  # Limit description length
                 category=category,
                 condition=condition,
@@ -534,11 +580,15 @@ def upload():
     
     return render_template("upload.html")
 
-@app.route("/uploads/<filename>")
+@app.route("/uploads/<path:filename>")
 @login_required
 def uploads(filename):
-    # Security: Validate filename
-    if not filename or '..' in filename or '/' in filename:
+    # If filename is a full URL (Cloudinary), redirect to it
+    if filename.startswith('http'):
+        return redirect(filename)
+    
+    # Security: Validate filename for local files
+    if '..' in filename or '/' in filename or '\\' in filename:
         flash('Invalid file request.', 'error')
         return redirect(url_for('home'))
     
@@ -800,24 +850,36 @@ def edit_profile():
                 if file and file.filename != '':
                     file_valid, file_msg = validate_file_upload(file)
                     if file_valid:
-                        # Delete old profile picture if it's not the default
-                        if current_user.profile_picture and current_user.profile_picture != 'default-avatar.png':
-                            old_file_path = os.path.join(app.config["UPLOAD_FOLDER"], current_user.profile_picture)
-                            try:
-                                if os.path.exists(old_file_path):
-                                    os.remove(old_file_path)
-                            except OSError:
-                                pass  # Ignore file deletion errors
+                        image_url = None
                         
-                        # Save new profile picture
-                        filename = secure_filename(file.filename)
-                        # Add timestamp to avoid conflicts
-                        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
-                        filename = timestamp + filename
-                        file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+                        # Try Cloudinary first
+                        if os.environ.get('CLOUDINARY_CLOUD_NAME'):
+                            try:
+                                upload_result = cloudinary.uploader.upload(
+                                    file,
+                                    folder="thriftit/profiles",
+                                    transformation=[
+                                        {"width": 200, "height": 200, "crop": "fill", "gravity": "face"},
+                                        {"quality": "auto:good"}
+                                    ],
+                                    resource_type="image"
+                                )
+                                image_url = upload_result['secure_url']
+                                print(f"✅ Profile picture uploaded to Cloudinary: {image_url}")
+                                
+                            except Exception as e:
+                                print(f"⚠️ Cloudinary profile upload failed: {str(e)}")
+                        
+                        if not image_url:
+                            # Fallback to local storage
+                            filename = secure_filename(file.filename)
+                            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+                            filename = timestamp + filename
+                            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+                            image_url = filename
                         
                         # Update user's profile picture
-                        current_user.profile_picture = filename
+                        current_user.profile_picture = image_url
                     else:
                         flash(file_msg, 'error')
                         return render_template('edit_profile.html')
@@ -849,29 +911,42 @@ def upload_profile_picture():
         if not file_valid:
             return jsonify({'success': False, 'message': file_msg})
         
-        # Delete old profile picture if it's not the default
-        if current_user.profile_picture and current_user.profile_picture != 'default-avatar.png':
-            old_file_path = os.path.join(app.config["UPLOAD_FOLDER"], current_user.profile_picture)
-            try:
-                if os.path.exists(old_file_path):
-                    os.remove(old_file_path)
-            except OSError:
-                pass  # Ignore file deletion errors
+        image_url = None
         
-        # Save new profile picture
-        filename = secure_filename(file.filename)
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
-        filename = timestamp + filename
-        file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+        # Try Cloudinary first
+        if os.environ.get('CLOUDINARY_CLOUD_NAME'):
+            try:
+                upload_result = cloudinary.uploader.upload(
+                    file,
+                    folder="thriftit/profiles",
+                    transformation=[
+                        {"width": 200, "height": 200, "crop": "fill", "gravity": "face"},
+                        {"quality": "auto:good"}
+                    ],
+                    resource_type="image"
+                )
+                image_url = upload_result['secure_url']
+                print(f"✅ Profile picture uploaded to Cloudinary: {image_url}")
+                
+            except Exception as e:
+                print(f"⚠️ Cloudinary profile upload failed: {str(e)}")
+        
+        if not image_url:
+            # Fallback to local storage
+            filename = secure_filename(file.filename)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+            filename = timestamp + filename
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            image_url = filename
         
         # Update user's profile picture
-        current_user.profile_picture = filename
+        current_user.profile_picture = image_url
         db.session.commit()
         
         return jsonify({
             'success': True, 
             'message': 'Profile picture updated successfully!',
-            'new_image_url': url_for('uploads', filename=filename)
+            'new_image_url': image_url if image_url.startswith('http') else url_for('uploads', filename=image_url)
         })
     
     except Exception as e:
@@ -1077,7 +1152,8 @@ def socket_status():
             'async_mode': socketio.async_mode,
             'logger_enabled': hasattr(socketio, 'logger'),
             'cors_allowed_origins': '*' if socketio.server.cors_allowed_origins == '*' else 'restricted',
-            'eventlet_available': eventlet_available
+            'eventlet_available': eventlet_available,
+            'cloudinary_configured': bool(os.environ.get('CLOUDINARY_CLOUD_NAME'))
         }
         
         return jsonify(status)
@@ -1218,6 +1294,7 @@ def run_production_server():
     print(f"   Socket.IO Async Mode: {socketio.async_mode}")
     print(f"   Port: {port}")
     print(f"   Eventlet Available: {eventlet_available}")
+    print(f"   Cloudinary: {'✅ Configured' if os.environ.get('CLOUDINARY_CLOUD_NAME') else '❌ Not configured'}")
     
     # Use different startup methods based on async mode and eventlet availability
     if socketio.async_mode == 'eventlet' and eventlet_available:
@@ -1254,6 +1331,7 @@ if __name__ == "__main__":
         print("🔧 Starting development server...")
         print(f"   Debug mode: {debug_mode}")
         print(f"   Port: {port}")
+        print(f"   Cloudinary: {'✅ Configured' if os.environ.get('CLOUDINARY_CLOUD_NAME') else '❌ Not configured'}")
         
         # Use different host based on environment
         host = 'localhost' if debug_mode else '0.0.0.0'
@@ -1276,6 +1354,7 @@ else:
         print("🔧 Application loaded for production WSGI server")
         print(f"   Socket.IO Async Mode: {socketio.async_mode}")
         print(f"   Eventlet Available: {eventlet_available}")
+        print(f"   Cloudinary: {'✅ Configured' if os.environ.get('CLOUDINARY_CLOUD_NAME') else '❌ Not configured'}")
 
 # ============================================================================
 # HEALTH CHECK ENDPOINT
@@ -1297,7 +1376,8 @@ def health_check():
             'database': 'connected',
             'upload_folder': 'accessible' if upload_folder_exists else 'not_accessible',
             'socketio_mode': socketio.async_mode,
-            'eventlet_available': eventlet_available
+            'eventlet_available': eventlet_available,
+            'cloudinary_configured': bool(os.environ.get('CLOUDINARY_CLOUD_NAME'))
         }
         
         return jsonify(health_info), 200
@@ -1308,7 +1388,8 @@ def health_check():
             'timestamp': datetime.utcnow().isoformat(),
             'error': str(e),
             'socketio_mode': socketio.async_mode,
-            'eventlet_available': eventlet_available
+            'eventlet_available': eventlet_available,
+            'cloudinary_configured': bool(os.environ.get('CLOUDINARY_CLOUD_NAME'))
         }
         
         return jsonify(health_info), 500
@@ -1341,11 +1422,16 @@ def api_status():
                 'async_mode': socketio.async_mode,
                 'status': 'initialized'
             },
+            'storage': {
+                'cloudinary_configured': bool(os.environ.get('CLOUDINARY_CLOUD_NAME')),
+                'local_fallback': True
+            },
             'features': {
                 'real_time_chat': True,
                 'file_upload': True,
                 'wishlist': True,
-                'user_profiles': True
+                'user_profiles': True,
+                'persistent_images': bool(os.environ.get('CLOUDINARY_CLOUD_NAME'))
             }
         }
         
