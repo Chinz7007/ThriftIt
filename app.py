@@ -1373,19 +1373,42 @@ if not app.debug:
 # ============================================================================
 
 if __name__ == "__main__":
-    # Initialize everything first
-    initialize_app()
+    print("🔍 Starting ThriftIt debug mode...")
     
     # Get port from environment
     port = int(os.environ.get('PORT', 5000))
-    print(f"🚀 Starting ThriftIt on port {port}")
+    print(f"🌐 Port from environment: {port}")
     print(f"🌐 Environment: {os.environ.get('FLASK_ENV', 'development')}")
     
-    # Start the server - THIS MUST BE THE LAST LINE
-    socketio.run(
-        app, 
-        host='0.0.0.0', 
-        port=port, 
-        debug=False,
-        allow_unsafe_werkzeug=True  # Allow in production for Render
-    )
+    try:
+        print("🔧 Initializing database...")
+        with app.app_context():
+            db.create_all()
+        print("✅ Database initialized")
+        
+        print(f"🔌 SocketIO async mode: {socketio.async_mode}")
+        print(f"📡 Starting server on 0.0.0.0:{port}")
+        
+        # Try different server configurations
+        print("🚀 Attempting to start SocketIO server...")
+        
+        # Simple startup without extra options
+        socketio.run(
+            app, 
+            host='0.0.0.0', 
+            port=port, 
+            debug=False
+        )
+        
+    except Exception as e:
+        print(f"❌ Server startup failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        # Fallback: try regular Flask
+        print("🔄 Falling back to regular Flask server...")
+        try:
+            app.run(host='0.0.0.0', port=port, debug=False)
+        except Exception as e2:
+            print(f"❌ Flask fallback also failed: {str(e2)}")
+            traceback.print_exc()
